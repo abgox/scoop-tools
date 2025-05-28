@@ -3,6 +3,8 @@
 </p>
 
 <p align="center">
+    <a href="readme-cn.md">简体中文</a> |
+    <a href="readme.md">English</a> |
     <a href="https://github.com/abgox/scoop-install">Github</a> |
     <a href="https://gitee.com/abgox/scoop-install">Gitee</a>
 </p>
@@ -27,27 +29,27 @@
 
 ---
 
-## 介绍
+## Introduction
 
-- scoop-install 是一个 PowerShell 脚本，它允许你使用 Scoop 配置，在 Scoop 安装应用时使用指定的代理加速的 url 而不是默认的 Github 地址
+A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop.
 
-## 安装
+## Installation
 
 ```pwsh
 scoop bucket add abgox-bucket https://gitee.com/abgox/abgox-bucket.git
 scoop install abgox-bucket/scoop-install
 ```
 
-## 使用
+## Usage
 
-1. 配置一个代理加速服务
+1. Configure URL replacement settings
 
    ```pwsh
    scoop config scoop-install-url-replace-from "https://github.com"
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com"
    ```
 
-2. 使用 `scoop-install` 命令安装软件，以 `InputTip-zip` 为例
+2. Use the `scoop-install` command to install app. For example, install `InputTip-zip`:
 
    ```pwsh
    scoop-install InputTip-zip
@@ -57,36 +59,31 @@ scoop install abgox-bucket/scoop-install
    scoop-install abgox-bucket/InputTip-zip
    ```
 
-## 实现原理
+## Implementation Details
 
 > [!Tip]
 >
-> 当你运行 `scoop-install abgox-bucket/InputTip-zip` 时，scoop-install 会执行以下逻辑
+> When you run `scoop-install abgox-bucket/InputTip-zip`, `scoop-install` performs the following logic:
 
-1. scoop-install 会读取以下两个配置项的值
+1. `scoop-install` reads the values of the following two configuration items:
 
-   - `scoop-install-url-replace-from`: 需要替换的 url 前缀
-   - `scoop-install-url-replace-to`: 替换后的 url 前缀
+   - `scoop-install-url-replace-from`: The URL prefix to be replaced.
+   - `scoop-install-url-replace-to`: The new URL prefix after replacement.
 
-2. scoop-install 会根据配置项的值替换 `abgox-bucket/InputTip-zip.json` 这个清单文件中的 url
+2. `scoop-install` replaces the URLs in the manifest file `abgox-bucket/InputTip-zip.json` based on the configured values.
 
-   - 假如你使用了以下配置
+   - For example, if you use the following configuration:
+     - `scoop-install-url-replace-from` is set to `https://github.com`.
+     - `scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com`.
+   - It means replacing `https://github.com` with `https://gh-proxy.com/github.com` in the URLs.
 
-     - `scoop-install-url-replace-from` 的值为 `https://github.com`
-     - `scoop-install-url-replace-to` 的值为 `https://gh-proxy.com/github.com`
+3. After replacement, `scoop-install` executes `scoop install abgox-bucket/InputTip-zip`.
 
-   - 这表示要将 url 中的 `https://github.com` 替换为 `https://gh-proxy.com/github.com`
+   - Since the URLs in the manifest have been replaced with `https://gh-proxy.com/github.com`,
+   - Scoop will download the installation package from `https://gh-proxy.com/github.com`.
 
-3. 替换完成后，scoop-install 才会执行 `scoop install abgox-bucket/InputTip-zip`
+4. After installation is complete or terminated with `Ctrl + C`, `scoop-install` clears the local changes in the manifest file `abgox-bucket/InputTip-zip.json`.
 
-   - 由于清单中的 url 已经替换为了 `https://gh-proxy.com/github.com`
-   - 所以 `scoop` 会从 `https://gh-proxy.com/github.com` 下载安装包
-   - 这样就不会因为网络问题导致无法下载 Github 上的软件包
-
-4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会清除掉 `abgox-bucket/InputTip-zip.json` 这个清单文件的本地更改
-
-   - 需要注意:
-
-     - 如果安装过程中，直接关掉终端，scoop-install 无法继续清除本地更改
-     - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库
-     - 此时，你需要运行 `scoop-install`，它会清除所有 bucket 中的本地更改
+   - If the terminal is closed during installation, `scoop-install` cannot clean up the local changes.
+   - It may cause `scoop update` to fail in syncing the remote bucket repository due to residual local changes.
+   - In such cases, run `scoop-install` again—it will clear all local changes in the bucket.
