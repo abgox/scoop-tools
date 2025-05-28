@@ -34,12 +34,27 @@ try {
                     [Parameter(ValueFromPipeline = $true)]
                     [string]$json
                 )
-                # Handle json string
                 $matches = [regex]::Matches($json, '\s*"\s*"\s*:')
                 foreach ($match in $matches) {
                     $json = $json -replace $match.Value, "`"empty_key_$([System.Guid]::NewGuid().Guid)`":"
                 }
                 $json = [regex]::Replace($json, ",`n?(\s*`n)?\}", "}")
+
+                function ProcessArray {
+                    param($array)
+                    $nestedArr = @()
+                    foreach ($item in $array) {
+                        if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
+                            $nestedArr += , (ProcessArray $item)
+                        }
+                        elseif ($item -is [System.Management.Automation.PSCustomObject]) {
+                            $nestedArr += ConvertToHashtable $item
+                        }
+                        else { $nestedArr += $item }
+                    }
+                    return , $nestedArr
+                }
+
                 function ConvertToHashtable {
                     param($obj)
                     $hash = @{}
@@ -49,27 +64,7 @@ try {
                             $v = $obj.$k # Value
                             if ($v -is [System.Collections.IEnumerable] -and $v -isnot [string]) {
                                 # Handle array (preserve nested structure)
-                                $arr = @()
-                                foreach ($item in $v) {
-                                    if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
-                                        # Nested array - recurse
-                                        $nestedArr = @()
-                                        foreach ($nestedItem in $item) {
-                                            if ($nestedItem -is [System.Management.Automation.PSCustomObject]) {
-                                                $nestedArr += ConvertToHashtable $nestedItem
-                                            }
-                                            else { $nestedArr += $nestedItem }
-                                        }
-                                        $arr += , $nestedArr  # Note the comma to preserve array structure
-                                    }
-                                    else {
-                                        if ($item -is [System.Management.Automation.PSCustomObject]) {
-                                            $arr += ConvertToHashtable $item
-                                        }
-                                        else { $arr += $item }
-                                    }
-                                }
-                                $hash[$k] = $arr
+                                $hash[$k] = ProcessArray $v
                             }
                             elseif ($v -is [System.Management.Automation.PSCustomObject]) {
                                 # Handle object
