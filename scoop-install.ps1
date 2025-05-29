@@ -1,17 +1,18 @@
 ﻿param(
-    [string]$app
+    [string]$app,
+    [switch]$reset
 )
 
 $app = $app.Trim()
 $config = scoop config
 $current_path = Get-Location
 
-if ($app -eq "") {
-    if ($PSUICulture -eq 'zh-CN') {
-        Write-Host "正在清除 scoop bucket 中的本地更改:" -ForegroundColor Green
+if ($reset) {
+    if ($PSUICulture -like "zh*") {
+        Write-Host "正在清除以下 scoop bucket 中的本地文件更改:" -ForegroundColor Green
     }
     else {
-        Write-Host "Clearing local changes in scoop bucket:" -ForegroundColor Green
+        Write-Host "Clearing local file changes in the following scoop buckets:" -ForegroundColor Green
     }
 
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
@@ -20,12 +21,28 @@ if ($app -eq "") {
         git checkout --quiet .
     }
     Set-Location $current_path
+}
+
+if ($app -eq "") {
+    if (!$reset) {
+        if ($PSUICulture -like "zh*") {
+            Write-Host "scoop-install 是一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Blue
+            Write-Host "`n用法: scoop-install.ps1 [-reset] <app>" -ForegroundColor Blue
+            Write-Host "`n详情请查看: https://gitee.com/abgox/scoop-install" -ForegroundColor Blue
+        }
+        else {
+            Write-Host "scoop-install is a PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Blue
+            Write-Host "`nUsage: scoop-install.ps1 [-reset] <app>" -ForegroundColor Blue
+            Write-Host "`nFor more information, please visit: https://gitee.com/abgox/scoop-install" -ForegroundColor Blue
+        }
+    }
     return
 }
 
 try {
     $info = scoop info $app
     $bucket_path = "$($config.root_path)\buckets\$($info.Bucket)"
+    $manifest_path = "$($bucket_path)\bucket\$($info.Name).json"
 
     $origin = $config.'scoop-install-url-replace-from'
     $replace = $config.'scoop-install-url-replace-to'
@@ -33,7 +50,7 @@ try {
     $has_config = $true
 
     if ($origin -eq $null -or $replace -eq $null) {
-        if ($PSUICulture -eq 'zh-CN') {
+        if ($PSUICulture -like "zh*") {
             Write-Host '你还没有添加相关配置。' -ForegroundColor Yellow
             Write-Host '参考配置:' -ForegroundColor Cyan
         }
@@ -48,7 +65,6 @@ try {
         return
     }
 
-    $manifest_path = "$($bucket_path)\bucket\$($info.Name).json"
     if ($PSEdition -eq 'Desktop') {
         function ConvertFrom_JsonToHashtable {
             param(
@@ -125,7 +141,7 @@ try {
 finally {
     if ($has_config) {
         Set-Location $bucket_path
-        git checkout --quiet .
+        git checkout -- "bucket/$($info.Name).json"
         Set-Location $current_path
     }
 }
