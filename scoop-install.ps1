@@ -8,7 +8,7 @@ $current_path = Get-Location
 
 if ($app -eq "") {
     if ($PSUICulture -eq 'zh-CN') {
-        Write-Host "正在清理 scoop bucket 中的本地更改:" -ForegroundColor Green
+        Write-Host "正在清除 scoop bucket 中的本地更改:" -ForegroundColor Green
     }
     else {
         Write-Host "Clearing local changes in scoop bucket:" -ForegroundColor Green
@@ -30,7 +30,7 @@ try {
     $origin = $config.'scoop-install-url-replace-from'
     $replace = $config.'scoop-install-url-replace-to'
 
-    $no_config = $false
+    $has_config = $true
 
     if ($origin -eq $null -or $replace -eq $null) {
         if ($PSUICulture -eq 'zh-CN') {
@@ -44,7 +44,7 @@ try {
         Write-Host 'scoop config scoop-install-url-replace-from "https://github.com"' -ForegroundColor Cyan
         Write-Host 'scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com"' -ForegroundColor Cyan
 
-        $no_config = $true
+        $has_config = $false
         return
     }
 
@@ -123,10 +123,9 @@ try {
     scoop install $app
 }
 finally {
-    if ($no_config) {
-        return
+    if ($has_config) {
+        Set-Location $bucket_path
+        git checkout --quiet .
+        Set-Location $current_path
     }
-    Set-Location $bucket_path
-    git checkout --quiet .
-    Set-Location $current_path
 }
