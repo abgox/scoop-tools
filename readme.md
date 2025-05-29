@@ -86,4 +86,4 @@ scoop install abgox-bucket/scoop-install
 
    - If the terminal is closed during installation, `scoop-install` cannot clean up the local changes.
    - It may cause `scoop update` to fail in syncing the remote bucket repository due to residual local changes.
-   - In such cases, run `scoop-install` again—it will clear all local changes in the bucket.
+   - In such cases, run `scoop-install -reset` will clear all local file changes in scoop buckets.

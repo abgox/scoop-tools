@@ -88,4 +88,4 @@ scoop install abgox-bucket/scoop-install
 
    - 如果安装过程中，直接关掉终端，scoop-install 无法继续清除本地更改
    - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库
-   - 此时，你需要运行 `scoop-install`，它会清除所有 bucket 中的本地更改
+   - 此时，你需要运行 `scoop-install -reset`，它会清除所有 bucket 中的本地文件更改
