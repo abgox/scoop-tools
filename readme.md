@@ -36,8 +36,8 @@ A PowerShell script that allows you to add Scoop configurations to use a replace
 ## Installation
 
 ```pwsh
-scoop bucket add abgox-bucket https://gitee.com/abgox/abgox-bucket.git
-scoop install abgox-bucket/scoop-install
+scoop bucket add abyss https://gitee.com/abgox/abyss
+scoop install abyss/scoop-install
 ```
 
 ## Usage
@@ -56,33 +56,33 @@ scoop install abgox-bucket/scoop-install
    ```
 
    ```pwsh
-   scoop-install abgox-bucket/InputTip-zip
+   scoop-install abyss/InputTip-zip
    ```
 
 ## Implementation Details
 
 > [!Tip]
 >
-> When you run `scoop-install abgox-bucket/InputTip-zip`, `scoop-install` performs the following logic:
+> When you run `scoop-install abyss/InputTip-zip`, `scoop-install` will perform the following logic:
 
 1. `scoop-install` reads the values of the following two configuration items:
 
    - `scoop-install-url-replace-from`: The URL prefix to be replaced.
    - `scoop-install-url-replace-to`: The new URL prefix after replacement.
 
-2. `scoop-install` replaces the URLs in the manifest file `abgox-bucket/InputTip-zip.json` based on the configured values.
+2. `scoop-install` replaces the URLs in the manifest file `abyss/InputTip-zip.json` based on the configured values.
 
    - For example, if you use the following configuration:
      - `scoop-install-url-replace-from` is set to `https://github.com`.
      - `scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com`.
    - It means replacing `https://github.com` with `https://gh-proxy.com/github.com` in the URLs.
 
-3. After replacement, `scoop-install` executes `scoop install abgox-bucket/InputTip-zip`.
+3. After replacement, `scoop-install` executes `scoop install abyss/InputTip-zip`.
 
    - Since the URLs in the manifest have been replaced with `https://gh-proxy.com/github.com`,
    - Scoop will download the installation package from `https://gh-proxy.com/github.com`.
 
-4. After installation is complete or terminated with `Ctrl + C`, `scoop-install` clears the local changes in the manifest file `abgox-bucket/InputTip-zip.json`.
+4. After installation is complete or terminated with `Ctrl + C`, `scoop-install` clears the local changes in the manifest file `abyss/InputTip-zip.json`.
 
    - If the terminal is closed during installation, `scoop-install` cannot clean up the local changes.
    - It may cause `scoop update` to fail in syncing the remote bucket repository due to residual local changes.

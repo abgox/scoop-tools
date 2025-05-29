@@ -36,8 +36,8 @@
 ## 安装
 
 ```pwsh
-scoop bucket add abgox-bucket https://gitee.com/abgox/abgox-bucket.git
-scoop install abgox-bucket/scoop-install
+scoop bucket add abyss https://gitee.com/abgox/abyss
+scoop install abyss/scoop-install
 ```
 
 ## 使用
@@ -56,21 +56,21 @@ scoop install abgox-bucket/scoop-install
    ```
 
    ```pwsh
-   scoop-install abgox-bucket/InputTip-zip
+   scoop-install abyss/InputTip-zip
    ```
 
 ## 实现原理
 
 > [!Tip]
 >
-> 当你运行 `scoop-install abgox-bucket/InputTip-zip` 时，scoop-install 会执行以下逻辑
+> 当你运行 `scoop-install abyss/InputTip-zip` 时，scoop-install 会执行以下逻辑
 
 1. scoop-install 会读取以下两个配置项的值
 
    - `scoop-install-url-replace-from`: 需要替换的 url 前缀
    - `scoop-install-url-replace-to`: 替换后的 url 前缀
 
-2. scoop-install 会根据配置项的值替换 `abgox-bucket/InputTip-zip.json` 这个清单文件中的 url
+2. scoop-install 会根据配置项的值替换 `abyss/InputTip-zip.json` 这个清单文件中的 url
 
    - 假如你使用了以下配置
 
@@ -79,12 +79,12 @@ scoop install abgox-bucket/scoop-install
 
    - 这表示要将 url 中的 `https://github.com` 替换为 `https://gh-proxy.com/github.com`
 
-3. 替换完成后，scoop-install 才会执行 `scoop install abgox-bucket/InputTip-zip`
+3. 替换完成后，scoop-install 才会执行 `scoop install abyss/InputTip-zip`
 
    - 由于清单中的 url 已经替换为了 `https://gh-proxy.com/github.com`
    - 所以 `scoop` 会从 `https://gh-proxy.com/github.com` 下载安装包
 
-4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会清除掉 `abgox-bucket/InputTip-zip.json` 这个清单文件的本地更改
+4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会清除掉 `abyss/InputTip-zip.json` 这个清单文件的本地更改
 
    - 如果安装过程中，直接关掉终端，scoop-install 无法继续清除本地更改
    - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库
