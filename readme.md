@@ -29,6 +29,10 @@
 
 ---
 
+> [!Tip]
+>
+> [scoop and scoop-install completion in PSCompletions](https://github.com/abgox/PSCompletions) is recommended.
+
 ## Introduction
 
 A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop.

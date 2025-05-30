@@ -29,6 +29,10 @@
 
 ---
 
+> [!Tip]
+>
+> 推荐使用 [PSCompletions 中的 scoop 和 scoop-install 命令补全](https://github.com/abgox/PSCompletions)
+
 ## 介绍
 
 一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url
