@@ -1,11 +1,27 @@
 ﻿param(
+    [switch]$reset,
     [string]$app,
-    [switch]$reset
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$restArgs
 )
 
 $app = $app.Trim()
 $config = scoop config
 $current_path = Get-Location
+
+if ($config.root_path -eq $null) {
+    if ($PSUICulture -like "zh*") {
+        Write-Host "你还没有设置 scoop 的根目录。" -ForegroundColor Yellow
+        Write-Host "参考配置:" -ForegroundColor Cyan
+        Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
+    }
+    else {
+        Write-Host "You haven't set the root directory of scoop yet." -ForegroundColor Yellow
+        Write-Host "Example:" -ForegroundColor Cyan
+        Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
+    }
+    return
+}
 
 if ($reset) {
     if ($PSUICulture -like "zh*") {
@@ -25,22 +41,25 @@ if ($reset) {
 
 if ($app -eq "") {
     if (!$reset) {
+        Write-Host "scoop-install " -ForegroundColor Magenta -NoNewline
         if ($PSUICulture -like "zh*") {
-            Write-Host "scoop-install 是一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Blue
-            Write-Host "`n用法: scoop-install.ps1 [-reset] <app>" -ForegroundColor Blue
-            Write-Host "`n详情请查看: https://gitee.com/abgox/scoop-install" -ForegroundColor Blue
+            Write-Host "是一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Cyan
+            Write-Host "详情请查看: " -ForegroundColor Cyan -NoNewline
         }
         else {
-            Write-Host "scoop-install is a PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Blue
-            Write-Host "`nUsage: scoop-install.ps1 [-reset] <app>" -ForegroundColor Blue
-            Write-Host "`nFor more information, please visit: https://gitee.com/abgox/scoop-install" -ForegroundColor Blue
+            Write-Host "is a PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Cyan
+            Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
         }
+        Write-Host "https://gitee.com/abgox/scoop-install" -ForegroundColor Blue
     }
     return
 }
 
 try {
     $info = scoop info $app
+    if ($info -eq $null) {
+        return
+    }
     $bucket_path = "$($config.root_path)\buckets\$($info.Bucket)"
     $manifest_path = "$($bucket_path)\bucket\$($info.Name).json"
 
@@ -136,7 +155,7 @@ try {
     }
     $manifest | ConvertTo-Json -Depth 100 | Out-File $manifest_path -Encoding utf8 -Force
 
-    scoop install $app
+    scoop install $app @restArgs
 }
 finally {
     if ($has_config) {

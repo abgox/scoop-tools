@@ -42,14 +42,14 @@ scoop install abyss/scoop-install
 
 ## Usage
 
-1. Configure URL replacement settings
+1. Configure URL replacement settings.
 
    ```pwsh
    scoop config scoop-install-url-replace-from "https://github.com"
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com"
    ```
 
-2. Use the `scoop-install` command to install app. For example, install `InputTip-zip`:
+2. Use the `scoop-install` command to install `InputTip-zip`.
 
    ```pwsh
    scoop-install InputTip-zip
@@ -58,6 +58,30 @@ scoop install abyss/scoop-install
    ```pwsh
    scoop-install abyss/InputTip-zip
    ```
+
+---
+
+- `scoop-install` supports the `-reset` parameter and all parameters of the `scoop install` command.
+
+- Some examples:
+
+  - If you want to clear all local file changes in the buckets to avoid synchronization conflicts during `scoop update`.
+
+    ```pwsh
+    scoop-install -reset
+    ```
+
+  - If you want to install `abyss/InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
+
+    ```pwsh
+    scoop-install abyss/InputTip-zip -u
+    ```
+
+  - If you don't also want to use the download cache, you can use `-k` or `--no-cache`.
+
+    ```pwsh
+    scoop-install abyss/InputTip-zip -u --no-cache
+    ```
 
 ## Implementation Details
 

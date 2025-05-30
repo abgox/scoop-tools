@@ -49,7 +49,7 @@ scoop install abyss/scoop-install
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com"
    ```
 
-2. 使用 `scoop-install` 命令安装应用，以 `InputTip-zip` 为例
+2. 使用 `scoop-install` 命令安装 `InputTip-zip`
 
    ```pwsh
    scoop-install InputTip-zip
@@ -58,6 +58,29 @@ scoop install abyss/scoop-install
    ```pwsh
    scoop-install abyss/InputTip-zip
    ```
+
+---
+
+- `scoop-install` 可以使用 `-reset` 参数和 `scoop install` 命令的所有参数
+
+- 参考示例:
+
+  - 如果你想清除所有 bucket 中的本地文件更改，避免 `scoop update` 出现远程同步冲突
+
+    ```pwsh
+    scoop-install -reset
+    ```
+
+  - 如果你想在安装 `abyss/InputTip-zip` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
+
+    ```pwsh
+    scoop-install abyss/InputTip-zip -u
+    ```
+
+  - 如果你还不想使用下载缓存，可以使用 `-k` 或 `--no-cache`
+    ```pwsh
+    scoop-install abyss/InputTip-zip -u --no-cache
+    ```
 
 ## 实现原理
 
