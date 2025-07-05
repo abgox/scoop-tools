@@ -1,29 +1,29 @@
 <p align="center">
-  <h1 align="center">✨scoop-install✨</h1>
+  <h1 align="center">✨scoop-tools✨</h1>
 </p>
 
 <p align="center">
     <a href="readme-cn.md">简体中文</a> |
     <a href="readme.md">English</a> |
-    <a href="https://github.com/abgox/scoop-install">Github</a> |
-    <a href="https://gitee.com/abgox/scoop-install">Gitee</a>
+    <a href="https://github.com/abgox/scoop-tools">Github</a> |
+    <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
 </p>
 
 <p align="center">
-    <a href="https://github.com/abgox/scoop-install/blob/main/license">
-        <img src="https://img.shields.io/github/license/abgox/scoop-install" alt="license" />
+    <a href="https://github.com/abgox/scoop-tools/blob/main/license">
+        <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://github.com/abgox/scoop-install">
-        <img src="https://img.shields.io/github/v/release/abgox/scoop-install?label=version" alt="version" />
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/v/release/abgox/scoop-tools?label=version" alt="version" />
     </a>
-    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-install.svg">
-        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-install.svg" alt="code size" />
+    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
+        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
     </a>
-    <a href="https://img.shields.io/github/repo-size/abgox/scoop-install.svg">
-        <img src="https://img.shields.io/github/repo-size/abgox/scoop-install.svg" alt="repo size" />
+    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg">
+        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg" alt="repo size" />
     </a>
-    <a href="https://github.com/abgox/scoop-install">
-        <img src="https://img.shields.io/github/created-at/abgox/scoop-install" alt="created" />
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/created-at/abgox/scoop-tools" alt="created" />
     </a>
 </p>
 
@@ -31,41 +31,80 @@
 
 > [!Tip]
 >
-> 推荐使用 [PSCompletions 中的 scoop 和 scoop-install 命令补全](https://gitee.com/abgox/PSCompletions)
+> 推荐使用 [PSCompletions 中的 scoop/scoop-install/scoop-update 命令补全](https://gitee.com/abgox/PSCompletions)
 
 ## 介绍
 
-- 一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url
+- 一些 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
+  - `scoop-install`
+  - `scoop-update`
 - 典型的使用场景: 如果应用的安装包来自 [Github](https://github.com)，可以配置代理地址，优化中国境内的下载体验
 
 ## 安装
 
-```pwsh
-scoop bucket add abyss https://gitee.com/abgox/abyss
-scoop install abyss/abgox.scoop-install
-```
+- 添加 bucket
+
+  ```powershell
+  scoop bucket add abyss https://gitee.com/abgox/abyss
+  ```
+
+- 安装 scoop-install
+
+  ```powershell
+  scoop install abyss/abgox.scoop-install
+  ```
+
+- 安装 scoop-update
+
+  ```powershell
+  scoop install abyss/abgox.scoop-update
+  ```
 
 ## 使用
 
+> [!Tip]
+> Scoop 配置项
+>
+> - `scoop-install-url-replace-from`: 需要被替换的 url，使用正则表达式，用 `^` 限制匹配行首
+> - `scoop-install-url-replace-to`: 用于替换的 url，必须和 `scoop-install-url-replace-from` 相对应
+
 1. 设置 url 替换配置，如果有多个值，使用 `|||` 分割
 
-   - `scoop-install-url-replace-from`: 推荐使用正则表达式，用 `^` 限制匹配行首
-   - `scoop-install-url-replace-from`: 替换后的 url，必须和 `scoop-install-url-replace-to` 相对应
-
-   ```pwsh
+   ```powershell
    scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
-2. 使用 `scoop-install` 命令安装应用
+2. 使用 [PSCompletions](https://gitee.com/abgox/PSCompletions) 添加命令补全
 
-   ```pwsh
+   ```powershell
+   scoop install abyss/abgox.pscompletions
+   ```
+
+   ```powershell
+   Import-Module PSCompletions
+   ```
+
+   ```powershell
+   psc add scoop-install scoop-update
+   ```
+
+3. 使用 `scoop-install` 命令安装应用
+
+   ```powershell
    scoop-install abyss/Microsoft.PowerShell
+   ```
+
+4. 使用 `scoop-update` 命令更新应用
+
+   ```powershell
+   scoop-update abyss/Microsoft.PowerShell
    ```
 
 ---
 
 - `scoop-install` 可以使用 `-reset` 参数和 `scoop install` 命令的所有参数
+- `scoop-update` 可以使用 `-reset` 参数和 `scoop update` 命令的所有参数
 
 - 参考示例:
 
@@ -74,18 +113,18 @@ scoop install abyss/abgox.scoop-install
     - 它使用 `git stash` 实现
     - 如果你还需要这些更改，可以使用 `git stash pop`，详情参考 [git stash](https://git-scm.com/docs/git-stash)
 
-    ```pwsh
+    ```powershell
     scoop-install -reset
     ```
 
   - 如果你想在安装 `abyss/Microsoft.PowerShell` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
 
-    ```pwsh
+    ```powershell
     scoop-install abyss/Microsoft.PowerShell -u
     ```
 
   - 如果你还不想使用下载缓存，可以使用 `-k` 或 `--no-cache`
-    ```pwsh
+    ```powershell
     scoop-install abyss/Microsoft.PowerShell -u --no-cache
     ```
 
@@ -97,8 +136,8 @@ scoop install abyss/abgox.scoop-install
 
 1. scoop-install 会读取以下两个配置项的值
 
-   - `scoop-install-url-replace-from`: 需要替换的 url (正则表达式)
-   - `scoop-install-url-replace-to`: 替换后的 url
+   - `scoop-install-url-replace-from`
+   - `scoop-install-url-replace-to`
 
 2. scoop-install 会根据配置项的值替换 `abyss/Microsoft.PowerShell` 的清单文件中的 url
 

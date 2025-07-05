@@ -1,29 +1,29 @@
 <p align="center">
-  <h1 align="center">✨scoop-install✨</h1>
+  <h1 align="center">✨scoop-tools✨</h1>
 </p>
 
 <p align="center">
     <a href="readme-cn.md">简体中文</a> |
     <a href="readme.md">English</a> |
-    <a href="https://github.com/abgox/scoop-install">Github</a> |
-    <a href="https://gitee.com/abgox/scoop-install">Gitee</a>
+    <a href="https://github.com/abgox/scoop-tools">Github</a> |
+    <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
 </p>
 
 <p align="center">
-    <a href="https://github.com/abgox/scoop-install/blob/main/license">
-        <img src="https://img.shields.io/github/license/abgox/scoop-install" alt="license" />
+    <a href="https://github.com/abgox/scoop-tools/blob/main/license">
+        <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://github.com/abgox/scoop-install">
-        <img src="https://img.shields.io/github/v/release/abgox/scoop-install?label=version" alt="version" />
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/v/release/abgox/scoop-tools?label=version" alt="version" />
     </a>
-    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-install.svg">
-        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-install.svg" alt="code size" />
+    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
+        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
     </a>
-    <a href="https://img.shields.io/github/repo-size/abgox/scoop-install.svg">
-        <img src="https://img.shields.io/github/repo-size/abgox/scoop-install.svg" alt="repo size" />
+    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg">
+        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg" alt="repo size" />
     </a>
-    <a href="https://github.com/abgox/scoop-install">
-        <img src="https://img.shields.io/github/created-at/abgox/scoop-install" alt="created" />
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/created-at/abgox/scoop-tools" alt="created" />
     </a>
 </p>
 
@@ -31,41 +31,80 @@
 
 > [!Tip]
 >
-> [scoop and scoop-install completion in PSCompletions](https://github.com/abgox/PSCompletions) is recommended.
+> [scoop/scoop-install/scoop-update completion in PSCompletions](https://github.com/abgox/PSCompletions) is recommended.
 
 ## Introduction
 
-- A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop.
+- Some PowerShell scripts that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop.
+  - `scoop-install`
+  - `scoop-update`
 - Typical case: if app come from [GitHub](https://github.com), you can configure a proxy URL to improve download experience in China.
 
 ## Installation
 
-```pwsh
-scoop bucket add abyss https://gitee.com/abgox/abyss
-scoop install abyss/abgox.scoop-install
-```
+- Add bucket
+
+  ```powershell
+  scoop bucket add abyss https://gitee.com/abgox/abyss
+  ```
+
+- Install scoop-install
+
+  ```powershell
+  scoop install abyss/abgox.scoop-install
+  ```
+
+- Install scoop-update
+
+  ```powershell
+  scoop install abyss/abgox.scoop-update
+  ```
 
 ## Usage
 
+> [!Tip]
+> Scoop Config
+>
+> - `scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
+> - `scoop-install-url-replace-to`: The replacement URL that corresponds to `scoop-install-url-replace-from`.
+
 1. Set URL replacement configurations. Use `|||` as a delimiter if there are multiple values.
 
-   - `scoop-install-url-replace-from`: It is recommended to use regular expressions. Use `^` to match the beginning of the URL.
-   - `scoop-install-url-replace-to`: The replacement URL that corresponds to `scoop-install-url-replace-from`.
-
-   ```pwsh
+   ```powershell
    scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
-2. Install apps using the `scoop-install` command.
+2. Install [PSCompletions](https://gitee.com/abgox/PSCompletions) to add command completion.
 
-   ```pwsh
+   ```powershell
+   scoop install abyss/abgox.pscompletions
+   ```
+
+   ```powershell
+   Import-Module PSCompletions
+   ```
+
+   ```powershell
+   psc add scoop-install scoop-update
+   ```
+
+3. Install apps using the `scoop-install` command.
+
+   ```powershell
    scoop-install abyss/Microsoft.PowerShell
+   ```
+
+4. Update apps using the `scoop-update` command.
+
+   ```powershell
+   scoop-update abyss/Microsoft.PowerShell
    ```
 
 ---
 
 - `scoop-install` supports the `-reset` parameter and all parameters of the `scoop install` command.
+- `scoop-update` supports the `-reset` parameter and all parameters of the `scoop update` command.
 
 - Examples:
 
@@ -74,19 +113,19 @@ scoop install abyss/abgox.scoop-install
     - It uses `git stash` to undo.
     - If you still need these changes, you can use `git stash pop`. For details, refer to [git stash](https://git-scm.com/docs/git-stash)
 
-    ```pwsh
+    ```powershell
     scoop-install -reset
     ```
 
   - If you want to install `abyss/abgox.InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
 
-    ```pwsh
+    ```powershell
     scoop-install abyss/Microsoft.PowerShell -u
     ```
 
   - If you don't also want to use the download cache, you can use `-k` or `--no-cache`.
 
-    ```pwsh
+    ```powershell
     scoop-install abyss/Microsoft.PowerShell -u --no-cache
     ```
 
@@ -98,8 +137,8 @@ scoop install abyss/abgox.scoop-install
 
 1. `scoop-install` reads the following two configuration values:
 
-   - `scoop-install-url-replace-from`: The URL to match (supports regular expressions).
-   - `scoop-install-url-replace-to`: The replacement URL.
+   - `scoop-install-url-replace-from`
+   - `scoop-install-url-replace-to`
 
 2. It replaces `url` in the manifest file of `abyss/Microsoft.PowerShell` based on these configurations.
 
