@@ -4,12 +4,80 @@
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$restArgs
 )
+function ConvertFrom_JsonToHashtable {
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [string]$json
+    )
+    $matches = [regex]::Matches($json, '\s*"\s*"\s*:')
+    foreach ($match in $matches) {
+        $json = $json -replace $match.Value, "`"empty_key_$([System.Guid]::NewGuid().Guid)`":"
+    }
+    $json = [regex]::Replace($json, ",`n?(\s*`n)?\}", "}")
+
+    function ProcessArray {
+        param($array)
+        $nestedArr = @()
+        foreach ($item in $array) {
+            if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
+                $nestedArr += , (ProcessArray $item)
+            }
+            elseif ($item -is [System.Management.Automation.PSCustomObject]) {
+                $nestedArr += ConvertToHashtable $item
+            }
+            else { $nestedArr += $item }
+        }
+        return , $nestedArr
+    }
+
+    function ConvertToHashtable {
+        param($obj)
+        $hash = @{}
+        if ($obj -is [System.Management.Automation.PSCustomObject]) {
+            foreach ($_ in $obj | Get-Member -MemberType Properties) {
+                $k = $_.Name # Key
+                $v = $obj.$k # Value
+                if ($v -is [System.Collections.IEnumerable] -and $v -isnot [string]) {
+                    # Handle array (preserve nested structure)
+                    $hash[$k] = ProcessArray $v
+                }
+                elseif ($v -is [System.Management.Automation.PSCustomObject]) {
+                    # Handle object
+                    $hash[$k] = ConvertToHashtable $v
+                }
+                else { $hash[$k] = $v }
+            }
+        }
+        else { $hash = $obj }
+        $hash
+    }
+    # Recurse
+    ConvertToHashtable ($json | ConvertFrom-Json)
+}
+
+function Replace-Multiple {
+    param (
+        [string]$InputString,
+        [string[]]$Patterns,
+        [string[]]$Replacements
+    )
+
+    for ($i = 0; $i -lt $Patterns.Count; $i++) {
+        if ($null -eq $Replacements[$i]) {
+            $Replacements[$i] = $Replacements[0]
+        }
+
+        $InputString = $InputString -replace $Patterns[$i], $Replacements[$i]
+    }
+
+    return $InputString
+}
 
 $app = $app.Trim()
 $config = scoop config
 $current_path = Get-Location
 
-if ($config.root_path -eq $null) {
+if ($null -eq $config.root_path) {
     if ($PSUICulture -like "zh*") {
         Write-Host "你还没有设置 scoop 的根目录。" -ForegroundColor Yellow
         Write-Host "参考配置:" -ForegroundColor Cyan
@@ -56,19 +124,27 @@ if ($app -eq "") {
 }
 
 try {
-    $info = scoop info $app
-    if ($info -eq $null) {
-        return
+    try {
+        $info = scoop info $app
+        $bucket_path = "$($config.root_path)\buckets\$($info.Bucket)"
+        $appName = $info.Name
+
+        if ($null -eq $info.Bucket -or $null -eq $info.Name) {
+            throw
+        }
     }
-    $bucket_path = "$($config.root_path)\buckets\$($info.Bucket)"
-    $manifest_path = "$($bucket_path)\bucket\$($info.Name).json"
+    catch {
+        throw "App not found or error manifest file."
+    }
+
+    $manifest_path = (Get-ChildItem "$bucket_path\bucket" -Recurse -Filter "$appName.json").FullName
 
     $origin = $config.'scoop-install-url-replace-from'
     $replace = $config.'scoop-install-url-replace-to'
 
     $has_config = $true
 
-    if ($origin -eq $null -or $replace -eq $null) {
+    if ($null -eq $origin -or $null -eq $replace) {
         if ($PSUICulture -like "zh*") {
             Write-Host '你还没有添加相关配置。' -ForegroundColor Yellow
             Write-Host '参考配置:' -ForegroundColor Cyan
@@ -77,82 +153,37 @@ try {
             Write-Host "You haven't added the relevant configuration yet." -ForegroundColor Yellow
             Write-Host 'Example:' -ForegroundColor Cyan
         }
-        Write-Host 'scoop config scoop-install-url-replace-from "https://github.com"' -ForegroundColor Cyan
-        Write-Host 'scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com"' -ForegroundColor Cyan
+        Write-Host 'scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"' -ForegroundColor Cyan
+        Write-Host 'scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
         $has_config = $false
         return
     }
 
     if ($PSEdition -eq 'Desktop') {
-        function ConvertFrom_JsonToHashtable {
-            param(
-                [Parameter(ValueFromPipeline = $true)]
-                [string]$json
-            )
-            $matches = [regex]::Matches($json, '\s*"\s*"\s*:')
-            foreach ($match in $matches) {
-                $json = $json -replace $match.Value, "`"empty_key_$([System.Guid]::NewGuid().Guid)`":"
-            }
-            $json = [regex]::Replace($json, ",`n?(\s*`n)?\}", "}")
-
-            function ProcessArray {
-                param($array)
-                $nestedArr = @()
-                foreach ($item in $array) {
-                    if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
-                        $nestedArr += , (ProcessArray $item)
-                    }
-                    elseif ($item -is [System.Management.Automation.PSCustomObject]) {
-                        $nestedArr += ConvertToHashtable $item
-                    }
-                    else { $nestedArr += $item }
-                }
-                return , $nestedArr
-            }
-
-            function ConvertToHashtable {
-                param($obj)
-                $hash = @{}
-                if ($obj -is [System.Management.Automation.PSCustomObject]) {
-                    foreach ($_ in $obj | Get-Member -MemberType Properties) {
-                        $k = $_.Name # Key
-                        $v = $obj.$k # Value
-                        if ($v -is [System.Collections.IEnumerable] -and $v -isnot [string]) {
-                            # Handle array (preserve nested structure)
-                            $hash[$k] = ProcessArray $v
-                        }
-                        elseif ($v -is [System.Management.Automation.PSCustomObject]) {
-                            # Handle object
-                            $hash[$k] = ConvertToHashtable $v
-                        }
-                        else { $hash[$k] = $v }
-                    }
-                }
-                else { $hash = $obj }
-                $hash
-            }
-            # Recurse
-            ConvertToHashtable ($json | ConvertFrom-Json)
-        }
         $manifest = Get-Content $manifest_path -Raw | ConvertFrom_JsonToHashtable
     }
     else {
         $manifest = Get-Content $manifest_path -Raw | ConvertFrom-Json -AsHashtable
     }
 
+    $originPatterns = $origin.Split('|||')
+    $replacePatterns = $replace.Split('|||')
+
+
     if ($manifest.url) {
-        $manifest.url = $manifest.url -replace "^$($origin)", $replace
+        $manifest.url = Replace-Multiple $manifest.url $originPatterns $replacePatterns
     }
     if ($manifest.architecture.'64bit'.url) {
-        $manifest.architecture.'64bit'.url = $manifest.architecture.'64bit'.url -replace "^$($origin)", $replace
+        $manifest.architecture.'64bit'.url = Replace-Multiple $manifest.architecture.'64bit'.url $originPatterns $replacePatterns
     }
     if ($manifest.architecture.'32bit'.url) {
-        $manifest.architecture.'32bit'.url = $manifest.architecture.'32bit'.url -replace "^$($origin)", $replace
+        $manifest.architecture.'32bit'.url = Replace-Multiple $manifest.architecture.'32bit'.url $originPatterns $replacePatterns
     }
     if ($manifest.architecture.arm64.url) {
-        $manifest.architecture.arm64.url = $manifest.architecture.arm64.url -replace "^$($origin)", $replace
+        $manifest.architecture.arm64.url = Replace-Multiple $manifest.architecture.arm64.url $originPatterns $replacePatterns
     }
+
     $manifest | ConvertTo-Json -Depth 100 | Out-File $manifest_path -Encoding utf8 -Force
 
     scoop install $app @restArgs
@@ -160,7 +191,7 @@ try {
 finally {
     if ($has_config) {
         Set-Location $bucket_path
-        git checkout -- "bucket/$($info.Name).json"
+        git checkout -- $manifest_path
         Set-Location $current_path
     }
 }
