@@ -8,14 +8,14 @@ $version = "1.1.0"
 $CN = $PSUICulture -like 'zh*'
 
 if (!$restArgs) {
-    Write-Host "scoop-install " -ForegroundColor Magenta -NoNewline
+    Write-Host "scoop-update " -ForegroundColor Magenta -NoNewline
     Write-Host "v$version" -ForegroundColor Cyan
     if ($CN) {
-        Write-Host "一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Cyan
+        Write-Host "一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 更新应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Cyan
         Write-Host "详情请查看: " -ForegroundColor Cyan -NoNewline
     }
     else {
-        Write-Host "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Cyan
+        Write-Host "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when updating the app in Scoop." -ForegroundColor Cyan
         Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
     }
     Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
@@ -140,7 +140,7 @@ if ($reset) {
         Set-Location $_.FullName
         Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
         Write-Host ": " -NoNewline
-        git stash -m "stash changes via abgox/scoop-tools/scoop-install ($(Get-Date))"
+        git stash -m "stash changes via abgox/scoop-tools/scoop-update ($(Get-Date))"
     }
     Set-Location $currentPath
 }
@@ -228,7 +228,7 @@ foreach ($app in $appList) {
 
         $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force
 
-        scoop install $app @ScoopParams
+        scoop update $app @ScoopParams
     }
     finally {
         if ($hasConfig -and !$hasError) {
