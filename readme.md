@@ -1,6 +1,4 @@
-<p align="center">
-  <h1 align="center">✨scoop-tools✨</h1>
-</p>
+<h1 align="center">✨scoop-tools✨</h1>
 
 <p align="center">
     <a href="readme-cn.md">简体中文</a> |
@@ -44,19 +42,19 @@
 
 - Add bucket
 
-  ```powershell
+  ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
   ```
 
 - Install scoop-install
 
-  ```powershell
+  ```shell
   scoop install abyss/abgox.scoop-install
   ```
 
 - Install scoop-update
 
-  ```powershell
+  ```shell
   scoop install abyss/abgox.scoop-update
   ```
 
@@ -70,35 +68,38 @@
 
 1. Set URL replacement configurations. Use `|||` as a delimiter if there are multiple values.
 
-   ```powershell
+   ```shell
    scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
+   ```
+
+   ```shell
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
 2. Install [PSCompletions](https://gitee.com/abgox/PSCompletions) to add command completion.
 
-   ```powershell
-   scoop install abyss/abgox.pscompletions
+   ```shell
+   scoop install abyss/abgox.PSCompletions
    ```
 
-   ```powershell
+   ```shell
    Import-Module PSCompletions
    ```
 
-   ```powershell
+   ```shell
    psc add scoop-install scoop-update
    ```
 
 3. Install apps using the `scoop-install` command.
 
-   ```powershell
-   scoop-install abyss/Microsoft.PowerShell
+   ```shell
+   scoop-install abyss/Microsoft.PowerToys
    ```
 
 4. Update apps using the `scoop-update` command.
 
-   ```powershell
-   scoop-update abyss/Microsoft.PowerShell
+   ```shell
+   scoop-update abyss/Microsoft.PowerToys
    ```
 
 ---
@@ -113,34 +114,34 @@
     - It uses `git stash` to undo.
     - If you still need these changes, you can use `git stash pop`. For details, refer to [git stash](https://git-scm.com/docs/git-stash)
 
-    ```powershell
+    ```shell
     scoop-install -reset
     ```
 
   - If you want to install `abyss/abgox.InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
 
-    ```powershell
-    scoop-install abyss/Microsoft.PowerShell -u
+    ```shell
+    scoop-install abyss/Microsoft.PowerToys -u
     ```
 
   - If you don't also want to use the download cache, you can use `-k` or `--no-cache`.
 
-    ```powershell
-    scoop-install abyss/Microsoft.PowerShell -u --no-cache
+    ```shell
+    scoop-install abyss/Microsoft.PowerToys -u --no-cache
     ```
 
 ## How It Works
 
 > [!Tip]
 >
-> When you run `scoop-install abyss/Microsoft.PowerShell`, it goes through the following process:
+> When you run `scoop-install abyss/Microsoft.PowerToys`, it goes through the following process:
 
 1. `scoop-install` reads the following two configuration values:
 
    - `scoop-install-url-replace-from`
    - `scoop-install-url-replace-to`
 
-2. It replaces `url` in the manifest file of `abyss/Microsoft.PowerShell` based on these configurations.
+2. It replaces `url` in the manifest file of `abyss/Microsoft.PowerToys` based on these configurations.
 
    - For example, if you use the following configuration:
 

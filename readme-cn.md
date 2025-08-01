@@ -1,6 +1,4 @@
-<p align="center">
-  <h1 align="center">✨scoop-tools✨</h1>
-</p>
+<h1 align="center">✨scoop-tools✨</h1>
 
 <p align="center">
     <a href="readme-cn.md">简体中文</a> |
@@ -35,7 +33,7 @@
 
 ## 介绍
 
-- 一些 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
+- PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
   - `scoop-install`
   - `scoop-update`
 - 典型的使用场景: 如果应用的安装包来自 [Github](https://github.com)，可以配置代理地址，优化中国境内的下载体验
@@ -44,19 +42,19 @@
 
 - 添加 bucket
 
-  ```powershell
+  ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
   ```
 
 - 安装 scoop-install
 
-  ```powershell
+  ```shell
   scoop install abyss/abgox.scoop-install
   ```
 
 - 安装 scoop-update
 
-  ```powershell
+  ```shell
   scoop install abyss/abgox.scoop-update
   ```
 
@@ -70,35 +68,38 @@
 
 1. 设置 url 替换配置，如果有多个值，使用 `|||` 分割
 
-   ```powershell
+   ```shell
    scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
+   ```
+
+   ```shell
    scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
 2. 使用 [PSCompletions](https://gitee.com/abgox/PSCompletions) 添加命令补全
 
-   ```powershell
-   scoop install abyss/abgox.pscompletions
+   ```shell
+   scoop install abyss/abgox.PSCompletions
    ```
 
-   ```powershell
+   ```shell
    Import-Module PSCompletions
    ```
 
-   ```powershell
+   ```shell
    psc add scoop-install scoop-update
    ```
 
 3. 使用 `scoop-install` 命令安装应用
 
-   ```powershell
-   scoop-install abyss/Microsoft.PowerShell
+   ```shell
+   scoop-install abyss/Microsoft.PowerToys
    ```
 
 4. 使用 `scoop-update` 命令更新应用
 
-   ```powershell
-   scoop-update abyss/Microsoft.PowerShell
+   ```shell
+   scoop-update abyss/Microsoft.PowerToys
    ```
 
 ---
@@ -113,33 +114,33 @@
     - 它使用 `git stash` 实现
     - 如果你还需要这些更改，可以使用 `git stash pop`，详情参考 [git stash](https://git-scm.com/docs/git-stash)
 
-    ```powershell
+    ```shell
     scoop-install -reset
     ```
 
-  - 如果你想在安装 `abyss/Microsoft.PowerShell` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
+  - 如果你想在安装 `abyss/Microsoft.PowerToys` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
 
-    ```powershell
-    scoop-install abyss/Microsoft.PowerShell -u
+    ```shell
+    scoop-install abyss/Microsoft.PowerToys -u
     ```
 
   - 如果你还不想使用下载缓存，可以使用 `-k` 或 `--no-cache`
-    ```powershell
-    scoop-install abyss/Microsoft.PowerShell -u --no-cache
+    ```shell
+    scoop-install abyss/Microsoft.PowerToys -u --no-cache
     ```
 
 ## 实现原理
 
 > [!Tip]
 >
-> 当你运行 `scoop-install abyss/Microsoft.PowerShell` 时，scoop-install 会执行以下逻辑
+> 当你运行 `scoop-install abyss/Microsoft.PowerToys` 时，scoop-install 会执行以下逻辑
 
 1. scoop-install 会读取以下两个配置项的值
 
    - `scoop-install-url-replace-from`
    - `scoop-install-url-replace-to`
 
-2. scoop-install 会根据配置项的值替换 `abyss/Microsoft.PowerShell` 的清单文件中的 url
+2. scoop-install 会根据配置项的值替换 `abyss/Microsoft.PowerToys` 的清单文件中的 url
 
    - 假如你使用了以下配置
 
@@ -156,7 +157,7 @@
    - 由于清单中的 url 已经替换为了 `https://gh-proxy.com`
    - 所以 Scoop 会从 `https://gh-proxy.com` 下载安装包
 
-4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会自动撤销 `abyss/Microsoft.PowerShell` 的清单文件中的本地更改
+4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会自动撤销 `abyss/Microsoft.PowerToys` 的清单文件中的本地更改
 
    - 如果安装过程中，直接关掉终端，scoop-install 无法继续撤销本地更改
    - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库
