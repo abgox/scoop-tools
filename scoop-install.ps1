@@ -3,9 +3,21 @@
     [string[]]$restArgs
 )
 
-$version = "1.1.0"
+$version = "1.1.1"
 
 $CN = $PSUICulture -like 'zh*'
+
+if (!(Get-Command git -ErrorAction SilentlyContinue)) {
+    if ($CN) {
+        Write-Host "请先安装 Git: " -ForegroundColor Red -NoNewline
+    }
+    else {
+        Write-Host "Please install Git first: " -ForegroundColor Red -NoNewline
+    }
+    Write-Host "scoop install abyss/Git.Git" -ForegroundColor Magenta
+    exit 1
+}
+
 
 if (!$restArgs) {
     Write-Host "scoop-install " -ForegroundColor Magenta -NoNewline
@@ -19,7 +31,7 @@ if (!$restArgs) {
         Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
     }
     Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
-    Write-Host " 或 " -ForegroundColor Cyan -NoNewline
+    Write-Host " | " -ForegroundColor Cyan -NoNewline
     Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
     return
 }
@@ -39,6 +51,16 @@ foreach ($arg in $restArgs) {
     else {
         $appList += $arg.Trim()
     }
+}
+
+if ($appList.Length -eq 0) {
+    if ($CN) {
+        Write-Host "没有指定要安装的应用。" -ForegroundColor Red
+    }
+    else {
+        Write-Host "No app specified to install." -ForegroundColor Red
+    }
+    exit 1
 }
 
 function ConvertFrom-JsonToHashtable {
@@ -120,7 +142,7 @@ catch {
     else {
         Write-Host "Failed to get scoop configuration. Please check if scoop is properly installed." -ForegroundColor Red
     }
-    return
+    exit 1
 }
 $currentPath = Get-Location
 $origin = $config.'scoop-install-url-replace-from'
@@ -156,7 +178,7 @@ if ($null -eq $config.root_path) {
         Write-Host "Example:" -ForegroundColor Cyan
         Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
     }
-    return
+    exit 1
 }
 
 if ($origin -and $replace) {
@@ -183,7 +205,7 @@ else {
     Write-Host 'scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
     $hasConfig = $false
-    return
+    exit 1
 }
 
 foreach ($app in $appList) {
