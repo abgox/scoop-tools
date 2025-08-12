@@ -1,7 +1,7 @@
 <h1 align="center">✨scoop-tools✨</h1>
 
 <p align="center">
-    <a href="readme-cn.md">简体中文</a> |
+    <a href="readme.zh-CN.md">简体中文</a> |
     <a href="readme.md">English</a> |
     <a href="https://github.com/abgox/scoop-tools">Github</a> |
     <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
@@ -112,7 +112,8 @@
   - If you want to undo all local file changes in the buckets to avoid synchronization conflicts during `scoop update`.
 
     - It uses `git stash` to undo.
-    - If you still need these changes, you can use `git stash pop`. For details, refer to [git stash](https://git-scm.com/docs/git-stash)
+    - If you still need these changes, you can use `git stash pop`.
+    - For details, refer to [git stash](https://git-scm.com/docs/git-stash).
 
     ```shell
     scoop-install -reset
@@ -164,4 +165,5 @@
    - In that case, you can run `scoop-install -reset`, which will undo local file changes in all buckets via `git stash`.
 
      - It uses `git stash` to undo.
-     - If you still need these changes, you can use `git stash pop`. For details, refer to [git stash](https://git-scm.com/docs/git-stash)
+     - If you still need these changes, you can use `git stash pop`.
+     - For details, refer to [git stash](https://git-scm.com/docs/git-stash)

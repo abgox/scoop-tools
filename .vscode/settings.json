@@ -1,4 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "filename-lint.enabled": true
+  "filename-lint.enabled": true,
+  "filename-lint.excludePatterns": [
+    "**/.git/**",
+    "**/.idea/**",
+    "readme.*.md",
+    "changelog.*.md"
+  ]
 }

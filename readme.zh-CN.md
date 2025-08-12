@@ -1,8 +1,8 @@
 <h1 align="center">✨scoop-tools✨</h1>
 
 <p align="center">
-    <a href="readme-cn.md">简体中文</a> |
     <a href="readme.md">English</a> |
+    <a href="readme.zh-CN.md">简体中文</a> |
     <a href="https://github.com/abgox/scoop-tools">Github</a> |
     <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
 </p>
@@ -33,7 +33,7 @@
 
 ## 介绍
 
-- PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
+- 用于 Scoop 的 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
   - `scoop-install`
   - `scoop-update`
 - 典型的使用场景: 如果应用的安装包来自 [Github](https://github.com)，可以配置代理地址，优化中国境内的下载体验
@@ -112,7 +112,8 @@
   - 如果你想撤销所有 bucket 中的本地文件更改，避免 `scoop update` 出现远程同步冲突
 
     - 它使用 `git stash` 实现
-    - 如果你还需要这些更改，可以使用 `git stash pop`，详情参考 [git stash](https://git-scm.com/docs/git-stash)
+    - 如果你还需要这些更改，可以使用 `git stash pop`
+    - 详情参考 [git stash](https://git-scm.com/docs/git-stash)
 
     ```shell
     scoop-install -reset
@@ -163,4 +164,5 @@
    - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库
    - 此时，你需要运行 `scoop-install -reset`，它会撤销所有 bucket 中的本地文件更改
      - 它使用 `git stash` 实现
-     - 如果你还需要这些更改，可以使用 `git stash pop`，详情参考 [git stash](https://git-scm.com/docs/git-stash)
+     - 如果你还需要这些更改，可以使用 `git stash pop`
+     - 详情参考 [git stash](https://git-scm.com/docs/git-stash)
