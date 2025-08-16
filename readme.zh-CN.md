@@ -93,13 +93,13 @@
 3. 使用 `scoop-install` 命令安装应用
 
    ```shell
-   scoop-install abyss/Microsoft.PowerToys
+   scoop-install abyss/abgox.scoop-i18n
    ```
 
 4. 使用 `scoop-update` 命令更新应用
 
    ```shell
-   scoop-update abyss/Microsoft.PowerToys
+   scoop-update abyss/abgox.scoop-i18n
    ```
 
 ---
@@ -119,29 +119,29 @@
     scoop-install -reset
     ```
 
-  - 如果你想在安装 `abyss/Microsoft.PowerToys` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
+  - 如果你想在安装 `abyss/abgox.scoop-i18n` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
 
     ```shell
-    scoop-install abyss/Microsoft.PowerToys -u
+    scoop-install abyss/abgox.scoop-i18n -u
     ```
 
   - 如果你还不想使用下载缓存，可以使用 `-k` 或 `--no-cache`
     ```shell
-    scoop-install abyss/Microsoft.PowerToys -u --no-cache
+    scoop-install abyss/abgox.scoop-i18n -u --no-cache
     ```
 
 ## 实现原理
 
 > [!Tip]
 >
-> 当你运行 `scoop-install abyss/Microsoft.PowerToys` 时，scoop-install 会执行以下逻辑
+> 当你运行 `scoop-install abyss/abgox.scoop-i18n` 时，scoop-install 会执行以下逻辑
 
 1. scoop-install 会读取以下两个配置项的值
 
    - `scoop-install-url-replace-from`
    - `scoop-install-url-replace-to`
 
-2. scoop-install 会根据配置项的值替换 `abyss/Microsoft.PowerToys` 的清单文件中的 url
+2. scoop-install 会根据配置项的值替换 `abyss/abgox.scoop-i18n` 的清单文件中的 url
 
    - 假如你使用了以下配置
 
@@ -158,7 +158,7 @@
    - 由于清单中的 url 已经替换为了 `https://gh-proxy.com`
    - 所以 Scoop 会从 `https://gh-proxy.com` 下载安装包
 
-4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会自动撤销 `abyss/Microsoft.PowerToys` 的清单文件中的本地更改
+4. 当安装完成或使用 `Ctrl + C` 终止安装后，scoop-install 会自动撤销 `abyss/abgox.scoop-i18n` 的清单文件中的本地更改
 
    - 如果安装过程中，直接关掉终端，scoop-install 无法继续撤销本地更改
    - 这可能导致因为本地残留的更改，`scoop update` 无法正常的同步远程 bucket 仓库

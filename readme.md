@@ -93,13 +93,13 @@
 3. Install apps using the `scoop-install` command.
 
    ```shell
-   scoop-install abyss/Microsoft.PowerToys
+   scoop-install abyss/abgox.scoop-i18n
    ```
 
 4. Update apps using the `scoop-update` command.
 
    ```shell
-   scoop-update abyss/Microsoft.PowerToys
+   scoop-update abyss/abgox.scoop-i18n
    ```
 
 ---
@@ -122,27 +122,27 @@
   - If you want to install `abyss/abgox.InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
 
     ```shell
-    scoop-install abyss/Microsoft.PowerToys -u
+    scoop-install abyss/abgox.scoop-i18n -u
     ```
 
   - If you don't also want to use the download cache, you can use `-k` or `--no-cache`.
 
     ```shell
-    scoop-install abyss/Microsoft.PowerToys -u --no-cache
+    scoop-install abyss/abgox.scoop-i18n -u --no-cache
     ```
 
 ## How It Works
 
 > [!Tip]
 >
-> When you run `scoop-install abyss/Microsoft.PowerToys`, it goes through the following process:
+> When you run `scoop-install abyss/abgox.scoop-i18n`, it goes through the following process:
 
 1. `scoop-install` reads the following two configuration values:
 
    - `scoop-install-url-replace-from`
    - `scoop-install-url-replace-to`
 
-2. It replaces `url` in the manifest file of `abyss/Microsoft.PowerToys` based on these configurations.
+2. It replaces `url` in the manifest file of `abyss/abgox.scoop-i18n` based on these configurations.
 
    - For example, if you use the following configuration:
 
