@@ -1,4 +1,4 @@
-<h1 align="center">✨scoop-tools✨</h1>
+<h1 align="center">✨ <a href="https://scoop-tools.abgox.com">scoop-tools</a> ✨</h1>
 
 <p align="center">
     <a href="readme.zh-CN.md">简体中文</a> |
@@ -26,6 +26,10 @@
 </p>
 
 ---
+
+<p align="center">
+  <strong>Star ⭐️ or <a href="https://abgox.com/donate">Donate 💰</a> if you like it!</strong>
+</p>
 
 > [!Tip]
 >
