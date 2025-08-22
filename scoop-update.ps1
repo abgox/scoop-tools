@@ -3,7 +3,7 @@
     [string[]]$restArgs
 )
 
-$version = "1.1.1"
+$version = "1.1.2"
 
 $CN = $PSUICulture -like 'zh*'
 
