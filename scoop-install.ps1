@@ -63,55 +63,73 @@ if ($appList.Length -eq 0) {
     exit 1
 }
 
-function ConvertFrom-JsonToHashtable {
+function ConvertFrom-JsonAsHashtable {
     param(
         [Parameter(ValueFromPipeline = $true)]
-        [string]$json
+        $InputObject
     )
-    $matches = [regex]::Matches($json, '\s*"\s*"\s*:')
-    foreach ($match in $matches) {
-        $json = $json -replace $match.Value, "`"empty_key_$([System.Guid]::NewGuid().Guid)`":"
-    }
-    $json = [regex]::Replace($json, ",`n?(\s*`n)?\}", "}")
 
-    function ProcessArray {
-        param($array)
-        $nestedArr = @()
-        foreach ($item in $array) {
-            if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
-                $nestedArr += , (ProcessArray $item)
-            }
-            elseif ($item -is [System.Management.Automation.PSCustomObject]) {
-                $nestedArr += ConvertToHashtable $item
-            }
-            else { $nestedArr += $item }
-        }
-        return , $nestedArr
+    begin {
+        $buffer = [System.Text.StringBuilder]::new()
     }
 
-    function ConvertToHashtable {
-        param($obj)
-        $hash = @{}
-        if ($obj -is [System.Management.Automation.PSCustomObject]) {
-            foreach ($_ in $obj | Get-Member -MemberType Properties) {
-                $k = $_.Name # Key
-                $v = $obj.$k # Value
-                if ($v -is [System.Collections.IEnumerable] -and $v -isnot [string]) {
-                    # Handle array (preserve nested structure)
-                    $hash[$k] = ProcessArray $v
-                }
-                elseif ($v -is [System.Management.Automation.PSCustomObject]) {
-                    # Handle object
-                    $hash[$k] = ConvertToHashtable $v
-                }
-                else { $hash[$k] = $v }
-            }
+    process {
+        if ($InputObject -is [array]) {
+            $null = $buffer.Append(($InputObject -join "`n"))
         }
-        else { $hash = $obj }
-        $hash
+        else {
+            $null = $buffer.Append($InputObject)
+        }
     }
-    # Recurse
-    ConvertToHashtable ($json | ConvertFrom-Json)
+
+    end {
+        $jsonString = $buffer.ToString()
+
+        if ($PSVersionTable.PSVersion.Major -ge 7) {
+            return $jsonString | ConvertFrom-Json -AsHashtable
+        }
+
+        $jsonString = [regex]::Replace($jsonString, '(?<!\\)"\s*"\s*:', {
+                param($m)
+                '"emptyKey_' + [Guid]::NewGuid() + '":'
+            })
+
+        $jsonString = [regex]::Replace($jsonString, ',\s*(?=[}\]]\s*$)', '')
+
+        function ProcessArray {
+            param($array)
+            $nestedArr = [System.Collections.ArrayList]::new()
+            foreach ($item in $array) {
+                if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
+                    $null = $nestedArr.Add((ProcessArray $item))
+                }
+                elseif ($item -is [System.Management.Automation.PSCustomObject]) {
+                    $null = $nestedArr.Add((ConvertToHashtable $item))
+                }
+                else {
+                    $null = $nestedArr.Add($item)
+                }
+            }
+            return $nestedArr
+        }
+
+        function ConvertToHashtable {
+            param($obj)
+            if ($obj -is [Array]) {
+                return @($obj | ForEach-Object { ConvertToHashtable $_ })
+            }
+            elseif ($obj -is [PSCustomObject]) {
+                $h = @{}
+                foreach ($prop in $obj.PSObject.Properties) {
+                    $h[$prop.Name] = ConvertToHashtable $prop.Value
+                }
+                return $h
+            }
+            else { return $obj }
+        }
+
+        ConvertToHashtable ($jsonString | ConvertFrom-Json)
+    }
 }
 
 function Replace-Multiple {
@@ -214,10 +232,10 @@ foreach ($app in $appList) {
     try {
         try {
             $info = scoop info $app
-            $bucketPath = "$($config.root_path)\buckets\$($info.Bucket)"
+            $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
             $appname = $info.Name
 
-            if ($null -eq $info.Bucket -or $null -eq $info.Name) {
+            if ($null -eq $info.Source -or $null -eq $info.Name) {
                 throw
             }
         }
@@ -229,7 +247,7 @@ foreach ($app in $appList) {
         $manifestPath = (Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json").FullName
 
         if ($PSEdition -eq 'Desktop') {
-            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-JsonToHashtable
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-JsonAsHashtable
         }
         else {
             $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
