@@ -11,9 +11,6 @@
     <a href="https://github.com/abgox/scoop-tools/blob/main/license">
         <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://github.com/abgox/scoop-tools">
-        <img src="https://img.shields.io/github/v/release/abgox/scoop-tools?label=version" alt="version" />
-    </a>
     <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
         <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
     </a>

@@ -11,9 +11,6 @@
     <a href="https://github.com/abgox/scoop-tools/blob/main/license">
         <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://github.com/abgox/scoop-tools">
-        <img src="https://img.shields.io/github/v/release/abgox/scoop-tools?label=version" alt="version" />
-    </a>
     <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
         <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
     </a>
@@ -28,7 +25,7 @@
 ---
 
 <p align="center">
-  <strong>如果你喜欢这个项目，请给它一个 ⭐️ 或 <a href="https://abgox.com/donate">赞赏 💰</a></strong>
+  <strong>喜欢这个项目？请给它一个 ⭐️ 或 <a href="https://abgox.com/donate">赞赏 💰</a></strong>
 </p>
 
 > [!Tip]
