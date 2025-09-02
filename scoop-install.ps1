@@ -3,8 +3,6 @@
     [string[]]$restArgs
 )
 
-$version = "1.1.2"
-
 $CN = $PSUICulture -like 'zh*'
 
 if (!(Get-Command git -ErrorAction SilentlyContinue)) {
@@ -20,8 +18,8 @@ if (!(Get-Command git -ErrorAction SilentlyContinue)) {
 
 
 if (!$restArgs) {
-    Write-Host "scoop-install " -ForegroundColor Magenta -NoNewline
-    Write-Host "v$version" -ForegroundColor Cyan
+    Write-Host "scoop-install" -ForegroundColor Magenta
+    Write-Host "--------------------"
     if ($CN) {
         Write-Host "一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Cyan
         Write-Host "详情请查看: " -ForegroundColor Cyan -NoNewline
@@ -30,6 +28,8 @@ if (!$restArgs) {
         Write-Host "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Cyan
         Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
     }
+    Write-Host "https://scoop-tools.abgox.com" -ForegroundColor Blue -NoNewline
+    Write-Host " | " -ForegroundColor Cyan -NoNewline
     Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
     Write-Host " | " -ForegroundColor Cyan -NoNewline
     Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
