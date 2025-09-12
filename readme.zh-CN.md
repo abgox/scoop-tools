@@ -64,17 +64,17 @@
 > [!Tip]
 > Scoop 配置项
 >
-> - `scoop-install-url-replace-from`: 需要被替换的 url，使用正则表达式，用 `^` 限制匹配行首
-> - `scoop-install-url-replace-to`: 用于替换的 url，必须和 `scoop-install-url-replace-from` 相对应
+> - `abgox-scoop-install-url-replace-from`: 需要被替换的 url，使用正则表达式，用 `^` 限制匹配行首
+> - `abgox-scoop-install-url-replace-to`: 用于替换的 url，必须和 `abgox-scoop-install-url-replace-from` 相对应
 
 1. 设置 url 替换配置，如果有多个值，使用 `|||` 分割
 
    ```shell
-   scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
    ```
 
    ```shell
-   scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
 2. 使用 [PSCompletions](https://gitee.com/abgox/PSCompletions) 添加命令补全
@@ -139,15 +139,15 @@
 
 1. scoop-install 会读取以下两个配置项的值
 
-   - `scoop-install-url-replace-from`
-   - `scoop-install-url-replace-to`
+   - `abgox-scoop-install-url-replace-from`
+   - `abgox-scoop-install-url-replace-to`
 
 2. scoop-install 会根据配置项的值替换 `abyss/abgox.scoop-i18n` 的清单文件中的 url
 
    - 假如你使用了以下配置
 
-     - `scoop-install-url-replace-from` 的值为 `^https://github.com|||^https://raw.githubusercontent.com`
-     - `scoop-install-url-replace-to` 的值为 `https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-from` 的值为 `^https://github.com|||^https://raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-to` 的值为 `https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com`
 
    - 它会根据 `|||` 进行分割，然后分别对 url 进行替换
 

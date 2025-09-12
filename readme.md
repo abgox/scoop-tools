@@ -64,17 +64,17 @@
 > [!Tip]
 > Scoop Config
 >
-> - `scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
-> - `scoop-install-url-replace-to`: The replacement URL that corresponds to `scoop-install-url-replace-from`.
+> - `abgox-scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
+> - `abgox-scoop-install-url-replace-to`: The replacement URL that corresponds to `abgox-scoop-install-url-replace-from`.
 
 1. Set URL replacement configurations. Use `|||` as a delimiter if there are multiple values.
 
    ```shell
-   scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
    ```
 
    ```shell
-   scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
 2. Install [PSCompletions](https://gitee.com/abgox/PSCompletions) to add command completion.
@@ -140,15 +140,15 @@
 
 1. `scoop-install` reads the following two configuration values:
 
-   - `scoop-install-url-replace-from`
-   - `scoop-install-url-replace-to`
+   - `abgox-scoop-install-url-replace-from`
+   - `abgox-scoop-install-url-replace-to`
 
 2. It replaces `url` in the manifest file of `abyss/abgox.scoop-i18n` based on these configurations.
 
    - For example, if you use the following configuration:
 
-     - `scoop-install-url-replace-from` is set to `^https://github.com|||^https://raw.githubusercontent.com`
-     - `scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-from` is set to `^https://github.com|||^https://raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com`
 
    - It will split the values by `|||` and replace the `url` accordingly:
 
