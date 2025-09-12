@@ -163,10 +163,8 @@ catch {
     exit 1
 }
 $currentPath = Get-Location
-$origin = $config.'scoop-install-url-replace-from'
-$replace = $config.'scoop-install-url-replace-to'
-$originPatterns = $origin.Split('|||')
-$replacePatterns = $replace.Split('|||')
+$origin = $config.'abgox-scoop-install-url-replace-from'
+$replace = $config.'abgox-scoop-install-url-replace-to'
 
 if ($reset) {
     if ($CN) {
@@ -175,7 +173,6 @@ if ($reset) {
     else {
         Write-Host "Undoing local file changes in the following scoop buckets by git stash:" -ForegroundColor Green
     }
-
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
         Set-Location $_.FullName
         Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
@@ -201,6 +198,8 @@ if ($null -eq $config.root_path) {
 
 if ($origin -and $replace) {
     $hasConfig = $true
+    $originPatterns = $origin.Split('|||')
+    $replacePatterns = $replace.Split('|||')
 }
 else {
     if ($CN) {
@@ -219,8 +218,8 @@ else {
         Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
         Write-Host 'Example:' -ForegroundColor Cyan
     }
-    Write-Host 'scoop config scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"' -ForegroundColor Cyan
-    Write-Host 'scoop config scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
+    Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"' -ForegroundColor Cyan
+    Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
     $hasConfig = $false
     exit 1
