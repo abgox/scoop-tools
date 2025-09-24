@@ -8,14 +8,17 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/stars/abgox/scoop-tools" alt="github stars" />
+    </a>
     <a href="https://github.com/abgox/scoop-tools/blob/main/license">
         <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
-        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
+    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools" alt="code size" />
     </a>
-    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg">
-        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg" alt="repo size" />
+    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools" alt="repo size" />
     </a>
     <a href="https://github.com/abgox/scoop-tools">
         <img src="https://img.shields.io/github/created-at/abgox/scoop-tools" alt="created" />
@@ -37,14 +40,18 @@
 - 用于 Scoop 的 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装和更新应用时使用替换后的 url 而不是原始的 url
   - `scoop-install`
   - `scoop-update`
-- 典型的使用场景: 如果应用的安装包来自 [Github](https://github.com)，可以配置代理地址，优化中国境内的下载体验
+- 典型的使用场景: 如果应用的安装包来自 [Github](https://github.com)，可以配置代理地址，优化国内的下载体验
 
 ## 安装
 
-- 添加 bucket
+- 添加 [abyss](https://abyss.abgox.com) bucket ([Github](https://github.com/abgox/abyss) 或 [Gitee](https://gitee.com/abgox/abyss))
 
   ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
+  ```
+
+  ```shell
+  scoop bucket add abyss https://github.com/abgox/abyss
   ```
 
 - 安装 scoop-install
@@ -62,6 +69,7 @@
 ## 使用
 
 > [!Tip]
+>
 > Scoop 配置项
 >
 > - `abgox-scoop-install-url-replace-from`: 需要被替换的 url，使用正则表达式，用 `^` 限制匹配行首

@@ -8,14 +8,17 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/stars/abgox/scoop-tools" alt="github stars" />
+    </a>
     <a href="https://github.com/abgox/scoop-tools/blob/main/license">
         <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
     </a>
-    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg">
-        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools.svg" alt="code size" />
+    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools" alt="code size" />
     </a>
-    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg">
-        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools.svg" alt="repo size" />
+    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools">
+        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools" alt="repo size" />
     </a>
     <a href="https://github.com/abgox/scoop-tools">
         <img src="https://img.shields.io/github/created-at/abgox/scoop-tools" alt="created" />
@@ -41,10 +44,14 @@
 
 ## Installation
 
-- Add bucket
+- Add the [abyss](https://abyss.abgox.com) bucket via [Github](https://github.com/abgox/abyss) or [Gitee](https://gitee.com/abgox/abyss).
 
   ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
+  ```
+
+  ```shell
+  scoop bucket add abyss https://github.com/abgox/abyss
   ```
 
 - Install scoop-install
@@ -62,6 +69,7 @@
 ## Usage
 
 > [!Tip]
+>
 > Scoop Config
 >
 > - `abgox-scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
