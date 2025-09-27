@@ -3,6 +3,8 @@
     [string[]]$restArgs
 )
 
+Set-StrictMode -Off
+
 $CN = $PSUICulture -like 'zh*'
 
 if (!(Get-Command git -ErrorAction SilentlyContinue)) {
