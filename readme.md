@@ -37,10 +37,9 @@
 
 ## Introduction
 
-- Some PowerShell scripts that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop.
-  - `scoop-install`
-  - `scoop-update`
-- Typical case: if app come from [GitHub](https://github.com), you can configure a proxy URL to improve download experience in China.
+- Tools provided for [Scoop](https://scoop.sh) that allow you to use a replaced URL instead of the original URL when downloading applications via Scoop.
+- You can use them to replace URLs in a specified format, thereby optimizing the download through a proxy address.
+- Typical case: Replace `https://github.com` and `https://raw.githubusercontent.com` with proxy addresses, refer to [Usage](#usage).
 
 ## Installation
 
@@ -54,13 +53,13 @@
   scoop bucket add abyss https://github.com/abgox/abyss
   ```
 
-- Install scoop-install
+- Install `scoop-install`
 
   ```shell
   scoop install abyss/abgox.scoop-install
   ```
 
-- Install scoop-update
+- Install `scoop-update`
 
   ```shell
   scoop install abyss/abgox.scoop-update
@@ -124,9 +123,9 @@
     - If you still need these changes, you can use `git stash pop`.
     - For details, refer to [git stash](https://git-scm.com/docs/git-stash).
 
-    ```shell
-    scoop-install -reset
-    ```
+      ```shell
+      scoop-install -reset
+      ```
 
   - If you want to install `abyss/abgox.InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
 
@@ -144,7 +143,8 @@
 
 > [!Tip]
 >
-> When you run `scoop-install abyss/abgox.scoop-i18n`, it goes through the following process:
+> - Take `scoop-install` as an example.
+> - When you run `scoop-install abyss/abgox.scoop-i18n`, it goes through the following process:
 
 1. `scoop-install` reads the following two configuration values:
 
