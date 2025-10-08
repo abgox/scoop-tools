@@ -5,31 +5,39 @@
 
 Set-StrictMode -Off
 
-$CN = $PSUICulture -like 'zh*'
+function Get-LocalizedString {
+    param($Text)
 
-if (!(Get-Command git -ErrorAction SilentlyContinue)) {
-    if ($CN) {
-        Write-Host "请先安装 Git: " -ForegroundColor Red -NoNewline
+    $CNText = @{
+        "Please install Git first: "                                                                                                                            = "请先安装 Git: "
+        "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop." = "一个 PowerShell 脚本，它允许你添加 Scoop 配置，以便在通过 Scoop 下载应用时使用替换后的 URL 而非原始 URL。"
+        "For more information, please visit: "                                                                                                                  = "详情请查看: "
+        "No app specified to install."                                                                                                                          = "没有指定要安装的应用。"
+        "Failed to get scoop configuration. Please check if scoop is properly installed."                                                                       = "获取 scoop 配置失败，请检查 scoop 是否正常安装"
+        "Undoing local file changes in the following scoop buckets by git stash:"                                                                               = "正在通过 git stash 撤销以下 scoop bucket 中的本地文件更改:"
+        "You haven't set the root directory of scoop yet."                                                                                                      = "你还没有设置 scoop 的根目录。"
+        "Example:"                                                                                                                                              = "参考配置:"
+        "You haven't added the relevant configuration yet."                                                                                                     = "你还没有添加相关配置。"
     }
-    else {
-        Write-Host "Please install Git first: " -ForegroundColor Red -NoNewline
+
+    if ($PSUICulture -like 'zh*') {
+        return $CNText[$Text]
     }
+    return $Text
+}
+
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Get-LocalizedString "Please install Git first: " | Write-Host -ForegroundColor Red -NoNewline
     Write-Host "scoop install abyss/Git.Git" -ForegroundColor Magenta
     exit 1
 }
 
 
-if (!$restArgs) {
+if (-not $restArgs) {
     Write-Host "scoop-install" -ForegroundColor Magenta
     Write-Host "--------------------"
-    if ($CN) {
-        Write-Host "一个 PowerShell 脚本，它允许你添加 Scoop 配置，在 Scoop 安装应用时使用替换后的 url 而不是原始的 url。" -ForegroundColor Cyan
-        Write-Host "详情请查看: " -ForegroundColor Cyan -NoNewline
-    }
-    else {
-        Write-Host "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when installing the app in Scoop." -ForegroundColor Cyan
-        Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
-    }
+    Get-LocalizedString "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop." | Write-Host -ForegroundColor Cyan
+    Get-LocalizedString "For more information, please visit: " | Write-Host -ForegroundColor Cyan -NoNewline
     Write-Host "https://scoop-tools.abgox.com" -ForegroundColor Blue -NoNewline
     Write-Host " | " -ForegroundColor Cyan -NoNewline
     Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
@@ -56,12 +64,7 @@ foreach ($arg in $restArgs) {
 }
 
 if ($appList.Length -eq 0) {
-    if ($CN) {
-        Write-Host "没有指定要安装的应用。" -ForegroundColor Red
-    }
-    else {
-        Write-Host "No app specified to install." -ForegroundColor Red
-    }
+    Get-LocalizedString "No app specified to install." | Write-Host -ForegroundColor Red
     exit 1
 }
 
@@ -167,12 +170,7 @@ try {
     $config = scoop config
 }
 catch {
-    if ($CN) {
-        Write-Host "获取 scoop 配置失败，请检查 scoop 是否正常安装" -ForegroundColor Red
-    }
-    else {
-        Write-Host "Failed to get scoop configuration. Please check if scoop is properly installed." -ForegroundColor Red
-    }
+    Get-LocalizedString "Failed to get scoop configuration. Please check if scoop is properly installed." | Write-Host -ForegroundColor Red
     exit 1
 }
 $currentPath = Get-Location
@@ -180,12 +178,8 @@ $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
 if ($reset) {
-    if ($CN) {
-        Write-Host "正在通过 git stash 撤销以下 scoop bucket 中的本地文件更改:" -ForegroundColor Green
-    }
-    else {
-        Write-Host "Undoing local file changes in the following scoop buckets by git stash:" -ForegroundColor Green
-    }
+    Get-LocalizedString "Undoing local file changes in the following scoop buckets by git stash:" | Write-Host -ForegroundColor Green
+
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
         Set-Location $_.FullName
         Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
@@ -196,16 +190,9 @@ if ($reset) {
 }
 
 if ($null -eq $config.root_path) {
-    if ($CN) {
-        Write-Host "你还没有设置 scoop 的根目录。" -ForegroundColor Yellow
-        Write-Host "参考配置:" -ForegroundColor Cyan
-        Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
-    }
-    else {
-        Write-Host "You haven't set the root directory of scoop yet." -ForegroundColor Yellow
-        Write-Host "Example:" -ForegroundColor Cyan
-        Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
-    }
+    Get-LocalizedString "You haven't set the root directory of scoop yet." | Write-Host -ForegroundColor Yellow
+    Get-LocalizedString "Example:" | Write-Host -ForegroundColor Cyan
+    Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
     exit 1
 }
 
@@ -215,22 +202,15 @@ if ($origin -and $replace) {
     $replacePatterns = $replace.Split('|||')
 }
 else {
-    if ($CN) {
-        Write-Host '你还没有添加相关配置。' -ForegroundColor Yellow
-        Write-Host "详情请查看: " -ForegroundColor Cyan -NoNewline
-        Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
-        Write-Host " 或 " -ForegroundColor Cyan -NoNewline
-        Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
-        Write-Host '参考配置:' -ForegroundColor Cyan
-    }
-    else {
-        Write-Host "You haven't added the relevant configuration yet." -ForegroundColor Yellow
-        Write-Host "For more information, please visit: " -ForegroundColor Cyan -NoNewline
-        Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
-        Write-Host " or " -ForegroundColor Cyan -NoNewline
-        Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
-        Write-Host 'Example:' -ForegroundColor Cyan
-    }
+    Get-LocalizedString "You haven't added the relevant configuration yet." | Write-Host -ForegroundColor Yellow
+    Get-LocalizedString "For more information, please visit: " | Write-Host -ForegroundColor Cyan -NoNewline
+    Write-Host "https://scoop-tools.abgox.com" -ForegroundColor Blue -NoNewline
+    Write-Host " | " -ForegroundColor Cyan -NoNewline
+    Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
+    Write-Host " | " -ForegroundColor Cyan -NoNewline
+    Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
+
+    Get-LocalizedString "Example:" | Write-Host -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"' -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
@@ -253,10 +233,14 @@ foreach ($app in $appList) {
         }
         catch {
             $hasError = $true
-            throw "App not found or error manifest file."
+            throw "Error fetching scoop info for ${app}: $_"
         }
 
-        $manifestPath = (Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json").FullName
+        $manifestFile = Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json" -ErrorAction Stop
+        if ($manifestFile.Count -gt 1) {
+            throw "Multiple manifest files found for $appname"
+        }
+        $manifestPath = $manifestFile.FullName
 
         if ($PSEdition -eq 'Desktop') {
             $manifest = Get-Content $manifestPath -Raw | ConvertFrom-JsonAsHashtable
@@ -278,12 +262,18 @@ foreach ($app in $appList) {
             $manifest.architecture.arm64.url = Replace-Multiple $manifest.architecture.arm64.url $originPatterns $replacePatterns
         }
 
-        $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force
+        try {
+            $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force -ErrorAction Stop
+        }
+        catch {
+            $hasError = $true
+            throw "Failed to write manifest: $_"
+        }
 
         scoop install $app @ScoopParams
     }
     finally {
-        if ($hasConfig -and !$hasError) {
+        if (-not $hasError -and $hasConfig) {
             Set-Location $bucketPath
             git checkout -- $manifestPath
             Set-Location $currentPath
