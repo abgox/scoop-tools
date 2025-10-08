@@ -1,4 +1,6 @@
-﻿param(
+﻿#Requires -Version 5.0
+
+param(
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$restArgs
 )
@@ -81,70 +83,52 @@ else {
     function ConvertFrom-JsonAsHashtable {
         param(
             [Parameter(ValueFromPipeline = $true)]
-            $InputObject
+            [string]$json
         )
+        $matches = [regex]::Matches($json, '\s*"\s*"\s*:')
+        foreach ($match in $matches) {
+            $json = $json -replace $match.Value, "`"empty_key_$([System.Guid]::NewGuid().Guid)`":"
+        }
+        $json = [regex]::Replace($json, ",`n?(\s*`n)?\}", "}")
 
-        begin {
-            $buffer = [System.Text.StringBuilder]::new()
+        function ProcessArray {
+            param($array)
+            $nestedArr = @()
+            foreach ($item in $array) {
+                if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
+                    $nestedArr += , (ProcessArray $item)
+                }
+                elseif ($item -is [System.Management.Automation.PSCustomObject]) {
+                    $nestedArr += ConvertToHashtable $item
+                }
+                else { $nestedArr += $item }
+            }
+            return , $nestedArr
         }
 
-        process {
-            if ($InputObject -is [array]) {
-                $null = $buffer.Append(($InputObject -join "`n"))
+        function ConvertToHashtable {
+            param($obj)
+            $hash = @{}
+            if ($obj -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($_ in $obj | Get-Member -MemberType Properties) {
+                    $k = $_.Name # Key
+                    $v = $obj.$k # Value
+                    if ($v -is [System.Collections.IEnumerable] -and $v -isnot [string]) {
+                        # Handle array (preserve nested structure)
+                        $hash[$k] = ProcessArray $v
+                    }
+                    elseif ($v -is [System.Management.Automation.PSCustomObject]) {
+                        # Handle object
+                        $hash[$k] = ConvertToHashtable $v
+                    }
+                    else { $hash[$k] = $v }
+                }
             }
-            else {
-                $null = $buffer.Append($InputObject)
-            }
+            else { $hash = $obj }
+            $hash
         }
-
-        end {
-            $jsonString = $buffer.ToString()
-
-            if ($PSVersionTable.PSVersion.Major -ge 7) {
-                return $jsonString | ConvertFrom-Json -AsHashtable
-            }
-
-            $jsonString = [regex]::Replace($jsonString, '(?<!\\)"\s*"\s*:', {
-                    param($m)
-                    '"emptyKey_' + [Guid]::NewGuid() + '":'
-                })
-
-            $jsonString = [regex]::Replace($jsonString, ',\s*(?=[}\]]\s*$)', '')
-
-            function ProcessArray {
-                param($array)
-                $nestedArr = [System.Collections.ArrayList]::new()
-                foreach ($item in $array) {
-                    if ($item -is [System.Collections.IEnumerable] -and $item -isnot [string]) {
-                        $null = $nestedArr.Add((ProcessArray $item))
-                    }
-                    elseif ($item -is [System.Management.Automation.PSCustomObject]) {
-                        $null = $nestedArr.Add((ConvertToHashtable $item))
-                    }
-                    else {
-                        $null = $nestedArr.Add($item)
-                    }
-                }
-                return $nestedArr
-            }
-
-            function ConvertToHashtable {
-                param($obj)
-                if ($obj -is [Array]) {
-                    return @($obj | ForEach-Object { ConvertToHashtable $_ })
-                }
-                elseif ($obj -is [PSCustomObject]) {
-                    $h = @{}
-                    foreach ($prop in $obj.PSObject.Properties) {
-                        $h[$prop.Name] = ConvertToHashtable $prop.Value
-                    }
-                    return $h
-                }
-                else { return $obj }
-            }
-
-            ConvertToHashtable ($jsonString | ConvertFrom-Json)
-        }
+        # Recurse
+        ConvertToHashtable ($json | ConvertFrom-Json)
     }
 }
 
@@ -242,24 +226,38 @@ foreach ($app in $appList) {
         }
         $manifestPath = $manifestFile.FullName
 
-        if ($PSEdition -eq 'Desktop') {
-            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-JsonAsHashtable
-        }
-        else {
-            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
-        }
+        $manifest = Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-JsonAsHashtable
 
-        if ($manifest.url) {
-            $manifest.url = Replace-Multiple $manifest.url $originPatterns $replacePatterns
-        }
-        if ($manifest.architecture.'64bit'.url) {
-            $manifest.architecture.'64bit'.url = Replace-Multiple $manifest.architecture.'64bit'.url $originPatterns $replacePatterns
-        }
-        if ($manifest.architecture.'32bit'.url) {
-            $manifest.architecture.'32bit'.url = Replace-Multiple $manifest.architecture.'32bit'.url $originPatterns $replacePatterns
-        }
-        if ($manifest.architecture.arm64.url) {
-            $manifest.architecture.arm64.url = Replace-Multiple $manifest.architecture.arm64.url $originPatterns $replacePatterns
+        $urlOperations = @(
+            @{
+                Get = { $manifest.url }
+                Set = { param($value) $manifest.url = $value }
+            },
+            @{
+                Get = { $manifest.architecture.'64bit'.url }
+                Set = { param($value) $manifest.architecture.'64bit'.url = $value }
+            },
+            @{
+                Get = { $manifest.architecture.'32bit'.url }
+                Set = { param($value) $manifest.architecture.'32bit'.url = $value }
+            },
+            @{
+                Get = { $manifest.architecture.arm64.url }
+                Set = { param($value) $manifest.architecture.arm64.url = $value }
+            }
+        )
+
+        foreach ($operation in $urlOperations) {
+            $urlValue = & $operation.Get
+            if ($urlValue) {
+                if ($urlValue -is [array]) {
+                    $newValue = @($urlValue | ForEach-Object { Replace-Multiple $_ $originPatterns $replacePatterns })
+                }
+                else {
+                    $newValue = Replace-Multiple $urlValue $originPatterns $replacePatterns
+                }
+                & $operation.Set $newValue
+            }
         }
 
         try {
