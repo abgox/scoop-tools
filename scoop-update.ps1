@@ -45,16 +45,48 @@ foreach ($arg in $restArgs) {
         if ($arg -eq "-reset") {
             $reset = $true
         }
+        elseif ($arg -in '-a', '--all') {
+            $all = $true
+        }
+        elseif ($arg -in '-g', '--global') {
+            $global = $true
+        }
         else {
             $ScoopParams += $arg
         }
     }
     else {
-        $appList += $arg.Trim()
+        if ($arg -eq '*') {
+            $all = $true
+        }
+        else {
+            $appList += @{
+                Name  = $arg.Trim()
+                level = $null
+            }
+        }
     }
 }
 
-if ($appList.Length -eq 0) {
+if ($global) {
+    function Test-Admin {
+        $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+        $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and ($identity.Groups -contains "S-1-5-32-544")
+    }
+
+    if (-not (Test-Admin)) {
+        if ($CN) {
+            Write-Host "你需要管理员权限才能更新全局应用。" -ForegroundColor Red
+        }
+        else {
+            Write-Host "You need admin rights to update global apps." -ForegroundColor Red
+        }
+        exit 1
+    }
+}
+
+if (-not $all -and $appList.Length -eq 0) {
     if ($CN) {
         Write-Host "没有指定要更新的应用。" -ForegroundColor Red
     }
@@ -237,14 +269,63 @@ else {
     exit 1
 }
 
-foreach ($app in $appList) {
+if ($all) {
+    $appList = @()
+    $dirs = @(
+        @{
+            Path  = "$($config.root_path)\apps"
+            level = 'user'
+        }
+    )
+    if ($global -and $config.global_path) {
+        $dirs += @{
+            Path  = "$($config.global_path)\apps"
+            level = 'global'
+        }
+    }
+
+    foreach ($item in $dirs) {
+        if (Test-Path $item.Path) {
+            $apps = Get-ChildItem $item.Path -Directory | Where-Object { $_.Name -ne 'scoop' } | Select-Object -ExpandProperty Name
+            foreach ($app in $apps) {
+                $appList += @{
+                    Name  = $app
+                    level = $item.level
+                }
+            }
+        }
+    }
+}
+
+if ($appList.Length -eq 0) {
+    if ($CN) {
+        Write-Host "没有可以更新的应用。" -ForegroundColor Red
+    }
+    else {
+        Write-Host "No app to update." -ForegroundColor Red
+    }
+    exit 1
+}
+
+foreach ($item in $appList) {
     $hasError = $false
+
+    $app = $item.Name
+    $level = $item.level
 
     try {
         try {
             $info = scoop info $app
             $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
             $appname = $info.Name
+            if ($null -eq $level) {
+                if ($all) {
+                    $level = if ($info.Installed -like "*`*global`*") { 'global' }else { 'user' }
+                }
+                else {
+                    $level = if ($global) { 'global' }else { 'user' }
+                }
+            }
 
             if ($null -eq $info.Source -or $null -eq $info.Name) {
                 throw
@@ -252,10 +333,14 @@ foreach ($app in $appList) {
         }
         catch {
             $hasError = $true
-            throw "App not found or error manifest file."
+            throw "Error fetching scoop info for ${app}: $_"
         }
 
-        $manifestPath = (Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json").FullName
+        $manifestFile = Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json" -ErrorAction Stop
+        if ($manifestFile.Count -gt 1) {
+            throw "Multiple manifest files found for $appname"
+        }
+        $manifestPath = $manifestFile.FullName
 
         if ($PSEdition -eq 'Desktop') {
             $manifest = Get-Content $manifestPath -Raw | ConvertFrom-JsonAsHashtable
@@ -277,9 +362,20 @@ foreach ($app in $appList) {
             $manifest.architecture.arm64.url = Replace-Multiple $manifest.architecture.arm64.url $originPatterns $replacePatterns
         }
 
-        $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force
+        try {
+            $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force -ErrorAction Stop
+        }
+        catch {
+            $hasError = $true
+            throw "Failed to write manifest: $_"
+        }
 
-        scoop update $app @ScoopParams
+        if ($level -eq 'global') {
+            scoop update $app --global @ScoopParams
+        }
+        else {
+            scoop update $app @ScoopParams
+        }
     }
     finally {
         if ($hasConfig -and !$hasError) {
