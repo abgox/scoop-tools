@@ -74,14 +74,14 @@
 > - `abgox-scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
 > - `abgox-scoop-install-url-replace-to`: The replacement URL that corresponds to `abgox-scoop-install-url-replace-from`.
 
-1. Set URL replacement configurations. Use `|||` as a delimiter if there are multiple values.
+1. Set URL replacement configurations. Use `|` as a delimiter if there are multiple values.
 
    ```shell
-   scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"
    ```
 
    ```shell
-   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
 2. Install [PSCompletions](https://gitee.com/abgox/PSCompletions) to add command completion.
@@ -155,10 +155,10 @@
 
    - For example, if you use the following configuration:
 
-     - `abgox-scoop-install-url-replace-from` is set to `^https://github.com|||^https://raw.githubusercontent.com`
-     - `abgox-scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-from` is set to `^https://github.com|^https://raw.githubusercontent.com`
+     - `abgox-scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com`
 
-   - It will split the values by `|||` and replace the `url` accordingly:
+   - It will split the values by `|` and replace the `url` accordingly:
 
      - `^https://github.com` matches `url` starting with `https://github.com` and replaces them with `https://gh-proxy.com/github.com`.
      - `^https://raw.githubusercontent.com` is replaced with `https://gh-proxy.com/raw.githubusercontent.com`.
