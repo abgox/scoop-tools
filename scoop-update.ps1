@@ -285,9 +285,19 @@ foreach ($item in $appList) {
 
     try {
         try {
-            $info = scoop info $app
+            $info = scoop info --verbose $app
+            if ($null -eq $info.Name) {
+                throw "Name is null"
+            }
+            if ($null -eq $info.Source) {
+                throw "Source is null"
+            }
+            if ($null -eq $info.Manifest) {
+                throw "Manifest is null"
+            }
             $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
             $appname = $info.Name
+            $manifestPath = $info.Manifest
             if ($null -eq $level) {
                 if ($all) {
                     $level = if ($info.Installed -like "*`*global`*") { 'global' }else { 'user' }
@@ -296,21 +306,11 @@ foreach ($item in $appList) {
                     $level = if ($global) { 'global' }else { 'user' }
                 }
             }
-
-            if ($null -eq $info.Source -or $null -eq $info.Name) {
-                throw
-            }
         }
         catch {
             $hasError = $true
             throw "Error fetching scoop info for ${app}: $_"
         }
-
-        $manifestFile = Get-ChildItem "$bucketPath\bucket" -Recurse -Filter "$appname.json" -ErrorAction Stop
-        if ($manifestFile.Count -gt 1) {
-            throw "Multiple manifest files found for $appname"
-        }
-        $manifestPath = $manifestFile.FullName
 
         $manifest = Get-Content $manifestPath -Raw -Encoding utf8 | ConvertFrom-JsonAsHashtable
 
