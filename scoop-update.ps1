@@ -224,8 +224,8 @@ if ($null -eq $config.root_path) {
 
 if ($origin -and $replace) {
     $hasConfig = $true
-    $originPatterns = $origin.Split('|||')
-    $replacePatterns = $replace.Split('|||')
+    $originPatterns = $origin -split '\|+'
+    $replacePatterns = $replace -split '\|+'
 }
 else {
     Get-LocalizedString "You haven't added the relevant configuration yet." | Write-Host -ForegroundColor Yellow
@@ -237,8 +237,8 @@ else {
     Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
 
     Get-LocalizedString "Example:" | Write-Host -ForegroundColor Cyan
-    Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|||^https://raw.githubusercontent.com"' -ForegroundColor Cyan
-    Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|||https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
+    Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"' -ForegroundColor Cyan
+    Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
     $hasConfig = $false
     exit 1
