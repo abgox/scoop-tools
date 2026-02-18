@@ -11,17 +11,17 @@ function Get-LocalizedString {
     param($Text)
 
     $CNText = @{
-        "Please install Git first: "                                                                                                                            = "请先安装 Git: "
-        "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop." = "一个 PowerShell 脚本，它允许你添加 Scoop 配置，以便在通过 Scoop 下载应用时使用替换后的 URL 而非原始 URL。"
-        "For more information, please visit: "                                                                                                                  = "详情请查看: "
-        "You need admin rights to update global apps."                                                                                                          = "你需要管理员权限才能更新全局应用。"
-        "No app specified to update."                                                                                                                           = "没有指定要更新的应用。"
-        "Failed to get scoop configuration. Please check if scoop is properly installed."                                                                       = "获取 scoop 配置失败，请检查 scoop 是否正常安装"
-        "Undoing local file changes in the following scoop buckets by git stash:"                                                                               = "正在通过 git stash 撤销以下 scoop bucket 中的本地文件更改:"
-        "You haven't set the root directory of scoop yet."                                                                                                      = "你还没有设置 scoop 的根目录。"
-        "Example:"                                                                                                                                              = "参考配置:"
-        "You haven't added the relevant configuration yet."                                                                                                     = "你还没有添加相关配置。"
-        "No app to update."                                                                                                                                     = "没有可以更新的应用。"
+        'Please install Git first: '                                                                                                                            = '请先安装 Git: '
+        'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' = '一个 PowerShell 脚本，它允许你添加 Scoop 配置，以便在通过 Scoop 下载应用时使用替换后的 URL 而非原始 URL。'
+        'For more information, please visit: '                                                                                                                  = '详情请查看: '
+        'You need admin rights to update global apps.'                                                                                                          = '你需要管理员权限才能更新全局应用。'
+        'No app specified to update.'                                                                                                                           = '没有指定要更新的应用。'
+        'Failed to get scoop configuration. Please check if scoop is properly installed.'                                                                       = '获取 scoop 配置失败，请检查 scoop 是否正常安装'
+        'Undoing local file changes in the following scoop buckets by git stash:'                                                                               = '正在通过 git stash 撤销以下 scoop bucket 中的本地文件更改:'
+        "You haven't set the root directory of scoop yet."                                                                                                      = '你还没有设置 scoop 的根目录。'
+        'Example:'                                                                                                                                              = '参考配置:'
+        "You haven't added the relevant configuration yet."                                                                                                     = '你还没有添加相关配置。'
+        'No app to update.'                                                                                                                                     = '没有可以更新的应用。'
     }
 
     if ($PSUICulture -like 'zh*') {
@@ -31,21 +31,21 @@ function Get-LocalizedString {
 }
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Get-LocalizedString "Please install Git first: " | Write-Host -ForegroundColor Red -NoNewline
-    Write-Host "scoop install abyss/Git.Git" -ForegroundColor Magenta
+    Get-LocalizedString 'Please install Git first: ' | Write-Host -ForegroundColor Red -NoNewline
+    Write-Host 'scoop install abyss/Git.Git' -ForegroundColor Magenta
     exit 1
 }
 
 if (-not $restArgs) {
-    Write-Host "scoop-update" -ForegroundColor Magenta
-    Write-Host "--------------------"
-    Get-LocalizedString "A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop." | Write-Host -ForegroundColor Cyan
-    Get-LocalizedString "For more information, please visit: " | Write-Host -ForegroundColor Cyan -NoNewline
-    Write-Host "https://scoop-tools.abgox.com" -ForegroundColor Blue -NoNewline
-    Write-Host " | " -ForegroundColor Cyan -NoNewline
-    Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
-    Write-Host " | " -ForegroundColor Cyan -NoNewline
-    Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
+    Write-Host 'scoop-update' -ForegroundColor Magenta
+    Write-Host '--------------------'
+    Get-LocalizedString 'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' | Write-Host -ForegroundColor Cyan
+    Get-LocalizedString 'For more information, please visit: ' | Write-Host -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue -NoNewline
+    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://gitee.com/abgox/scoop-tools' -ForegroundColor Blue -NoNewline
+    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://github.com/abgox/scoop-tools' -ForegroundColor Blue
     return
 }
 
@@ -53,8 +53,8 @@ $appList = @()
 $ScoopParams = @()
 
 foreach ($arg in $restArgs) {
-    if ($arg -like "-*") {
-        if ($arg -eq "-reset") {
+    if ($arg -like '-*') {
+        if ($arg -eq '-reset') {
             $reset = $true
         }
         elseif ($arg -in '-a', '--all') {
@@ -84,17 +84,17 @@ if ($global) {
     function Test-Admin {
         $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
         $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and ($identity.Groups -contains "S-1-5-32-544")
+        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and ($identity.Groups -contains 'S-1-5-32-544')
     }
 
     if (-not (Test-Admin)) {
-        Get-LocalizedString "You need admin rights to update global apps." | Write-Host -ForegroundColor Red
+        Get-LocalizedString 'You need admin rights to update global apps.' | Write-Host -ForegroundColor Red
         exit 1
     }
 }
 
 if (-not $all -and $appList.Length -eq 0) {
-    Get-LocalizedString "No app specified to update." | Write-Host -ForegroundColor Red
+    Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
     exit 1
 }
 
@@ -196,7 +196,7 @@ try {
     $config = scoop config
 }
 catch {
-    Get-LocalizedString "Failed to get scoop configuration. Please check if scoop is properly installed." | Write-Host -ForegroundColor Red
+    Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
     exit 1
 }
 $currentPath = Get-Location
@@ -204,12 +204,12 @@ $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
 if ($reset) {
-    Get-LocalizedString "Undoing local file changes in the following scoop buckets by git stash:" | Write-Host -ForegroundColor Green
+    Get-LocalizedString 'Undoing local file changes in the following scoop buckets by git stash:' | Write-Host -ForegroundColor Green
 
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
         Set-Location $_.FullName
         Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
-        Write-Host ": " -NoNewline
+        Write-Host ': ' -NoNewline
         git stash -m "stash changes via abgox/scoop-tools/scoop-update ($(Get-Date))"
     }
     Set-Location $currentPath
@@ -217,7 +217,7 @@ if ($reset) {
 
 if ($null -eq $config.root_path) {
     Get-LocalizedString "You haven't set the root directory of scoop yet." | Write-Host -ForegroundColor Yellow
-    Get-LocalizedString "Example:" | Write-Host -ForegroundColor Cyan
+    Get-LocalizedString 'Example:' | Write-Host -ForegroundColor Cyan
     Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
     exit 1
 }
@@ -229,14 +229,14 @@ if ($origin -and $replace) {
 }
 else {
     Get-LocalizedString "You haven't added the relevant configuration yet." | Write-Host -ForegroundColor Yellow
-    Get-LocalizedString "For more information, please visit: " | Write-Host -ForegroundColor Cyan -NoNewline
-    Write-Host "https://scoop-tools.abgox.com" -ForegroundColor Blue -NoNewline
-    Write-Host " | " -ForegroundColor Cyan -NoNewline
-    Write-Host "https://gitee.com/abgox/scoop-tools" -ForegroundColor Blue -NoNewline
-    Write-Host " | " -ForegroundColor Cyan -NoNewline
-    Write-Host "https://github.com/abgox/scoop-tools" -ForegroundColor Blue
+    Get-LocalizedString 'For more information, please visit: ' | Write-Host -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue -NoNewline
+    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://gitee.com/abgox/scoop-tools' -ForegroundColor Blue -NoNewline
+    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://github.com/abgox/scoop-tools' -ForegroundColor Blue
 
-    Get-LocalizedString "Example:" | Write-Host -ForegroundColor Cyan
+    Get-LocalizedString 'Example:' | Write-Host -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"' -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
@@ -273,7 +273,7 @@ if ($all) {
 }
 
 if ($appList.Length -eq 0) {
-    Get-LocalizedString "No app to update." | Write-Host -ForegroundColor Red
+    Get-LocalizedString 'No app to update.' | Write-Host -ForegroundColor Red
     exit 1
 }
 
@@ -287,13 +287,13 @@ foreach ($item in $appList) {
         try {
             $info = scoop info --verbose $app
             if ($null -eq $info.Name) {
-                throw "Name is null"
+                throw 'Name is null'
             }
             if ($null -eq $info.Source) {
-                throw "Source is null"
+                throw 'Source is null'
             }
             if ($null -eq $info.Manifest) {
-                throw "Manifest is null"
+                throw 'Manifest is null'
             }
             $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
             $appname = $info.Name
