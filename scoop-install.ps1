@@ -216,9 +216,12 @@ else {
     exit 1
 }
 
-foreach ($app in $appList) {
-    $hasError = $false
+function installApp {
+    param(
+        [string]$app
+    )
 
+    $hasError = $false
     try {
         try {
             $info = scoop info --verbose $app
@@ -230,6 +233,12 @@ foreach ($app in $appList) {
             }
             if ($null -eq $info.Manifest) {
                 throw 'Manifest is null'
+            }
+            if ($info.Dependencies) {
+                $deps = $info.Dependencies -split '\s+\|\s+'
+                foreach ($d in $deps) {
+                    installApp $d
+                }
             }
             $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
             $appname = $info.Name
@@ -291,4 +300,8 @@ foreach ($app in $appList) {
             Set-Location $currentPath
         }
     }
+}
+
+foreach ($app in $appList) {
+    installApp $app
 }
