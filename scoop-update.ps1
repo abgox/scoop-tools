@@ -30,11 +30,7 @@ function Get-LocalizedString {
     return $Text
 }
 
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Get-LocalizedString 'Please install Git first: ' | Write-Host -ForegroundColor Red -NoNewline
-    Write-Host 'scoop install abyss/Git.Git' -ForegroundColor Magenta
-    exit 1
-}
+$hasGit = Get-Command git -ErrorAction SilentlyContinue
 
 if (-not $restArgs) {
     Write-Host 'scoop-update' -ForegroundColor Magenta
@@ -204,6 +200,11 @@ $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
 if ($reset) {
+    if (-not $hasGit) {
+        Get-LocalizedString 'Please install Git first: ' | Write-Host -ForegroundColor Red -NoNewline
+        Write-Host 'scoop-install abyss/Git.Git' -ForegroundColor Magenta
+        exit 1
+    }
     Get-LocalizedString 'Undoing local file changes in the following scoop buckets by git stash:' | Write-Host -ForegroundColor Green
 
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
@@ -312,7 +313,8 @@ foreach ($item in $appList) {
             throw "Error fetching scoop info for ${app}: $_"
         }
 
-        $manifest = Get-Content $manifestPath -Raw -Encoding utf8 | ConvertFrom-JsonAsHashtable
+        $manifestContent = Get-Content $manifestPath -Raw -Encoding utf8
+        $manifest = $manifestContent | ConvertFrom-JsonAsHashtable
 
         $urlOperations = @(
             @{
@@ -363,9 +365,7 @@ foreach ($item in $appList) {
     }
     finally {
         if (-not $hasError -and $hasConfig) {
-            Set-Location $bucketPath
-            git checkout -- $manifestPath
-            Set-Location $currentPath
+            Set-Content $manifestPath $manifestContent -Encoding utf8 -Force -ErrorAction Stop
         }
     }
 }
