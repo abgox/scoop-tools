@@ -116,9 +116,7 @@
 - `scoop-update` supports the `-reset` parameter and all parameters of the `scoop update` command.
 
 - Examples:
-
   - If you want to undo all local file changes in the buckets to avoid synchronization conflicts during `scoop update`.
-
     - It uses `git stash` to undo.
     - If you still need these changes, you can use `git stash pop`.
     - For details, refer to [git stash](https://git-scm.com/docs/git-stash).
@@ -147,32 +145,25 @@
 > - When you run `scoop-install abyss/abgox.scoop-i18n`, it goes through the following process:
 
 1. `scoop-install` reads the following two configuration values:
-
    - `abgox-scoop-install-url-replace-from`
    - `abgox-scoop-install-url-replace-to`
 
 2. It replaces `url` in the manifest file of `abyss/abgox.scoop-i18n` based on these configurations.
-
    - For example, if you use the following configuration:
-
      - `abgox-scoop-install-url-replace-from` is set to `^https://github.com|^https://raw.githubusercontent.com`
      - `abgox-scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com`
 
    - It will split the values by `|` and replace the `url` accordingly:
-
      - `^https://github.com` matches `url` starting with `https://github.com` and replaces them with `https://gh-proxy.com/github.com`.
      - `^https://raw.githubusercontent.com` is replaced with `https://gh-proxy.com/raw.githubusercontent.com`.
 
 3. After replacement, `scoop-install` runs the actual `scoop install` command.
-
    - Since `url` of the manifest have been replaced with `https://gh-proxy.com`, Scoop will download the installation packages from `https://gh-proxy.com`.
 
 4. Once the installation is complete (or interrupted with `Ctrl + C`), `scoop-install` automatically undos the changes made to the manifest file.
-
    - If you close the terminal during installation, it cannot undo the changes.
    - This may cause issues with `scoop update` due to local file modifications conflicting with the remote bucket.
-   - In that case, you can run `scoop-install -reset`, which will undo local file changes in all buckets via `git stash`.
-
+   - In that case, you can run `scoop-install -reset`, which will undo local file changes in all buckets.
      - It uses `git stash` to undo.
      - If you still need these changes, you can use `git stash pop`.
      - For details, refer to [git stash](https://git-scm.com/docs/git-stash)
