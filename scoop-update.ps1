@@ -365,7 +365,7 @@ foreach ($item in $appList) {
     }
     finally {
         if (-not $hasError -and $hasConfig) {
-            Set-Content $manifestPath $manifestContent -Encoding utf8 -Force -ErrorAction Stop
+            $manifestContent | Out-File $manifestPath -NoNewline -Encoding utf8 -Force -ErrorAction Stop
         }
     }
 }
