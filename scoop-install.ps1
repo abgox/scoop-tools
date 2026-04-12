@@ -5,7 +5,12 @@ param(
     [string[]]$restArgs
 )
 
-Set-StrictMode -Off
+try {
+    Microsoft.PowerShell.Core\Set-StrictMode -Off
+}
+catch {
+    throw $_
+}
 
 function Get-LocalizedString {
     param($Text)
