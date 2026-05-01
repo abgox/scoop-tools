@@ -201,7 +201,6 @@ catch {
     Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
     exit 1
 }
-$currentPath = Get-Location
 $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
@@ -214,12 +213,16 @@ if ($reset) {
     Get-LocalizedString 'Undoing local file changes in the following scoop buckets by git stash:' | Write-Host -ForegroundColor Green
 
     Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
-        Set-Location $_.FullName
+        Push-Location $_.FullName
         Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
         Write-Host ': ' -NoNewline
-        git stash -m "stash changes via abgox/scoop-tools/scoop-update ($(Get-Date))"
+        try {
+            git stash -m "stash changes via abgox/scoop-tools/scoop-update ($(Get-Date))"
+        }
+        finally {
+            Pop-Location
+        }
     }
-    Set-Location $currentPath
 }
 
 if ($null -eq $config.root_path) {
@@ -230,7 +233,6 @@ if ($null -eq $config.root_path) {
 }
 
 if ($origin -and $replace) {
-    $hasConfig = $true
     $originPatterns = $origin -split '\|+'
     $replacePatterns = $replace -split '\|+'
 }
@@ -247,7 +249,6 @@ else {
     Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"' -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
-    $hasConfig = $false
     exit 1
 }
 
@@ -285,7 +286,7 @@ if ($appList.Length -eq 0) {
 }
 
 foreach ($item in $appList) {
-    $hasError = $false
+    $hasChanged = $false
 
     $app = $item.Name
     $level = $item.level
@@ -315,12 +316,11 @@ foreach ($item in $appList) {
             }
         }
         catch {
-            $hasError = $true
             throw "Error fetching scoop info for ${app}: $_"
         }
 
-        $manifestContent = Get-Content $manifestPath -Raw -Encoding utf8
-        $manifest = $manifestContent | ConvertFrom-JsonAsHashtable
+        $content = Get-Content $manifestPath -Raw -Encoding utf8
+        $manifest = $content | ConvertFrom-JsonAsHashtable
 
         $urlOperations = @(
             @{
@@ -354,11 +354,12 @@ foreach ($item in $appList) {
             }
         }
 
+        $newContent = $manifest | ConvertTo-Json -Depth 100
         try {
-            $manifest | ConvertTo-Json -Depth 100 | Out-File $manifestPath -Encoding utf8 -Force -ErrorAction Stop
+            Set-Content $manifestPath $newContent -Encoding utf8 -Force -ErrorAction Stop
+            $hasChanged = $true
         }
         catch {
-            $hasError = $true
             throw "Failed to write manifest: $_"
         }
 
@@ -370,8 +371,16 @@ foreach ($item in $appList) {
         }
     }
     finally {
-        if (-not $hasError -and $hasConfig) {
-            $manifestContent | Out-File $manifestPath -NoNewline -Encoding utf8 -Force -ErrorAction Stop
+        if ($hasChanged) {
+            if ($hasGit) {
+                Push-Location $bucketPath
+                git checkout -- $manifestPath
+                Pop-Location
+            }
+            else {
+                $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+                [System.IO.File]::WriteAllText($manifestPath, $content, $utf8NoBom)
+            }
         }
     }
 }
