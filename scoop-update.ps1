@@ -95,11 +95,6 @@ if ($global) {
     }
 }
 
-if (-not $all -and $appList.Length -eq 0) {
-    Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
-    exit 1
-}
-
 function ConvertFrom-JsonAsHashtable {
     [CmdletBinding()]
     param(
@@ -225,6 +220,13 @@ if ($reset) {
     }
 }
 
+if (-not $all -and $appList.Length -eq 0) {
+    if (-not $reset) {
+        Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
+    }
+    return
+}
+
 if ($null -eq $config.root_path) {
     Get-LocalizedString "You haven't set the root directory of scoop yet." | Write-Host -ForegroundColor Yellow
     Get-LocalizedString 'Example:' | Write-Host -ForegroundColor Cyan
@@ -282,7 +284,7 @@ if ($all) {
 
 if ($appList.Length -eq 0) {
     Get-LocalizedString 'No app to update.' | Write-Host -ForegroundColor Red
-    exit 1
+    return
 }
 
 foreach ($item in $appList) {

@@ -65,11 +65,6 @@ foreach ($arg in $restArgs) {
     }
 }
 
-if ($appList.Length -eq 0) {
-    Get-LocalizedString 'No app specified to install.' | Write-Host -ForegroundColor Red
-    exit 1
-}
-
 function ConvertFrom-JsonAsHashtable {
     [CmdletBinding()]
     param(
@@ -193,6 +188,13 @@ if ($reset) {
             Pop-Location
         }
     }
+}
+
+if ($appList.Length -eq 0) {
+    if (-not $reset) {
+        Get-LocalizedString 'No app specified to install.' | Write-Host -ForegroundColor Red
+    }
+    return
 }
 
 if ($null -eq $config.root_path) {
