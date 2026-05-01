@@ -56,10 +56,7 @@ $ScoopParams = @()
 
 foreach ($arg in $restArgs) {
     if ($arg -like '-*') {
-        if ($arg -eq '-reset') {
-            $reset = $true
-        }
-        elseif ($arg -in '-a', '--all') {
+        if ($arg -in '-a', '--all') {
             $all = $true
         }
         elseif ($arg -in '-g', '--global') {
@@ -199,31 +196,8 @@ catch {
 $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
-if ($reset) {
-    if (-not $hasGit) {
-        Get-LocalizedString 'Please install Git first: ' | Write-Host -ForegroundColor Red -NoNewline
-        Write-Host 'scoop-install abyss/Git.Git' -ForegroundColor Magenta
-        exit 1
-    }
-    Get-LocalizedString 'Undoing local file changes in the following scoop buckets by git stash:' | Write-Host -ForegroundColor Green
-
-    Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
-        Push-Location $_.FullName
-        Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
-        Write-Host ': ' -NoNewline
-        try {
-            git stash -m "stash changes via abgox/scoop-tools/scoop-update ($(Get-Date))"
-        }
-        finally {
-            Pop-Location
-        }
-    }
-}
-
 if (-not $all -and $appList.Length -eq 0) {
-    if (-not $reset) {
-        Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
-    }
+    Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
     return
 }
 
@@ -285,6 +259,25 @@ if ($all) {
 if ($appList.Length -eq 0) {
     Get-LocalizedString 'No app to update.' | Write-Host -ForegroundColor Red
     return
+}
+
+if ($hasGit) {
+    Get-ChildItem "$($config.root_path)\buckets" -Directory | ForEach-Object {
+        Push-Location $_.FullName
+        $change = git status --porcelain
+        if (-not $change) {
+            Pop-Location
+            return
+        }
+        Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
+        Write-Host ': ' -NoNewline
+        try {
+            git stash -m "stash local changes by abgox.scoop-update ($(Get-Date))"
+        }
+        finally {
+            Pop-Location
+        }
+    }
 }
 
 foreach ($item in $appList) {

@@ -53,12 +53,7 @@ $ScoopParams = @()
 
 foreach ($arg in $restArgs) {
     if ($arg -like '-*') {
-        if ($arg -eq '-reset') {
-            $reset = $true
-        }
-        else {
-            $ScoopParams += $arg
-        }
+        $ScoopParams += $arg
     }
     else {
         $appList += $arg.Trim()
@@ -169,31 +164,8 @@ catch {
 $origin = $config.'abgox-scoop-install-url-replace-from'
 $replace = $config.'abgox-scoop-install-url-replace-to'
 
-if ($reset) {
-    if (-not $hasGit) {
-        Get-LocalizedString 'Please install Git first: ' | Write-Host -ForegroundColor Red -NoNewline
-        Write-Host 'scoop-install abyss/Git.Git' -ForegroundColor Magenta
-        exit 1
-    }
-    Get-LocalizedString 'Undoing local file changes in the following scoop buckets by git stash:' | Write-Host -ForegroundColor Green
-
-    Get-ChildItem "$($config.root_path)\buckets" | ForEach-Object {
-        Push-Location $_.FullName
-        Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
-        Write-Host ': ' -NoNewline
-        try {
-            git stash -m "stash changes via abgox/scoop-tools/scoop-install ($(Get-Date))"
-        }
-        finally {
-            Pop-Location
-        }
-    }
-}
-
 if ($appList.Length -eq 0) {
-    if (-not $reset) {
-        Get-LocalizedString 'No app specified to install.' | Write-Host -ForegroundColor Red
-    }
+    Get-LocalizedString 'No app specified to install.' | Write-Host -ForegroundColor Red
     return
 }
 
@@ -222,6 +194,25 @@ else {
     Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
 
     exit 1
+}
+
+if ($hasGit) {
+    Get-ChildItem "$($config.root_path)\buckets" -Directory | ForEach-Object {
+        Push-Location $_.FullName
+        $change = git status --porcelain
+        if (-not $change) {
+            Pop-Location
+            return
+        }
+        Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
+        Write-Host ': ' -NoNewline
+        try {
+            git stash -m "stash local changes by abgox.scoop-install ($(Get-Date))"
+        }
+        finally {
+            Pop-Location
+        }
+    }
 }
 
 function installApp {
