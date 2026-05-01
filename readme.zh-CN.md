@@ -37,9 +37,11 @@
 
 ## 介绍
 
-- 为 [Scoop](https://scoop.sh) 提供的工具，允许你在通过 Scoop 下载应用程序时，使用替换后的 URL 而非原始 URL。
-- 你可以使用它们替换指定格式的 URL，从而通过代理地址加速下载。
-- 典型的使用场景: 替换 `https://github.com` 和 `https://raw.githubusercontent.com` 为代理地址，参考 [使用](#使用)
+为 [Scoop](https://scoop.sh) 打造的增强工具，允许你在安装或更新应用时，**动态替换** 清单文件中的下载 URL
+
+- **加速下载**：将 GitHub 等慢速源替换为镜像代理，例如 [gh-proxy](https://gh-proxy.com)
+- **非侵入性**：仅在安装瞬间修改本地清单，完成后自动还原
+- **安全可靠**：自动使用 [git stash](https://git-scm.com/docs/git-stash) 处理本地 bucket 的未提交更改
 
 ## 安装
 
@@ -110,60 +112,23 @@
    scoop-update abyss/abgox.scoop-i18n
    ```
 
----
-
-- `scoop-install` 可以使用 `-reset` 参数和 `scoop install` 命令的所有参数
-- `scoop-update` 可以使用 `-reset` 参数和 `scoop update` 命令的所有参数
-
-- 参考示例:
-  - 如果你想撤销所有 bucket 中的本地文件更改，避免 `scoop update` 出现远程同步冲突
-    - 它使用 `git stash` 实现
-    - 如果你还需要这些更改，可以使用 `git stash pop`
-    - 详情参考 [git stash](https://git-scm.com/docs/git-stash)
-
-      ```shell
-      scoop-install -reset
-      ```
-
-  - 如果你想在安装 `abyss/abgox.scoop-i18n` 时不更新 Scoop，可以使用 `-u` 或 `--no-update-scoop`
-
-    ```shell
-    scoop-install abyss/abgox.scoop-i18n -u
-    ```
-
-  - 如果你还不想使用下载缓存，可以使用 `-k` 或 `--no-cache`
-    ```shell
-    scoop-install abyss/abgox.scoop-i18n -u --no-cache
-    ```
-
 ## 实现原理
 
 > [!Tip]
 >
-> - 以 `scoop-install` 为例
-> - 当你运行 `scoop-install abyss/abgox.scoop-i18n` 时，`scoop-install` 会执行以下逻辑
+> 以 `scoop-install` 为例，它会执行以下逻辑
 
-1. `scoop-install` 会读取以下两个配置项的值
-   - `abgox-scoop-install-url-replace-from`
-   - `abgox-scoop-install-url-replace-to`
+1.  **状态检查**：检查本地 bucket 是否有未提交的更改。如果有，自动执行 [git stash](https://git-scm.com/docs/git-stash) 暂存
+2.  **动态匹配**：读取以下配置，通过正则匹配目标应用的 JSON 清单
+    - `abgox-scoop-install-url-replace-from`
+    - `abgox-scoop-install-url-replace-to`
 
-2. `scoop-install` 会根据配置项的值替换 `abyss/abgox.scoop-i18n` 的清单文件中的 url
-   - 假如你使用了以下配置
-     - `abgox-scoop-install-url-replace-from` 的值为 `^https://github.com|^https://raw.githubusercontent.com`
-     - `abgox-scoop-install-url-replace-to` 的值为 `https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com`
+3.  **临时替换**：修改清单中的 `url` 为代理地址
+4.  **调用原生**：执行真正的 `scoop install`，此时 Scoop 会从代理地址下载
+5.  **自动恢复**：安装完成或 `Ctrl+C` 中断后，自动撤销清单修改
 
-   - 它会根据 `|` 进行分割，然后分别对 url 进行替换
-     - `^https://github.com` 匹配 `https://github.com` 开头的 url，然后替换为 `https://gh-proxy.com/github.com`
-     - `^https://raw.githubusercontent.com` 匹配 `https://raw.githubusercontent.com` 开头的 url，然后替换为 `https://gh-proxy.com/raw.githubusercontent.com`
-
-3. 替换完成后，`scoop-install` 才会执行实际的 `scoop install` 命令
-   - 由于清单中的 url 已经替换为了 `https://gh-proxy.com`
-   - 所以 Scoop 会从 `https://gh-proxy.com` 下载安装包
-
-4. 当安装完成或使用 `Ctrl + C` 终止安装后，`scoop-install` 会自动撤销 `abyss/abgox.scoop-i18n` 的清单文件中的本地更改
-   - 如果安装过程中，直接关掉终端，`scoop-install` 无法继续撤销本地更改
-   - 这可能导致因为本地残留的临时更改，`scoop update` 无法正常的同步远程 bucket 仓库
-   - 此时，你需要运行 `scoop-install -reset`，它会撤销所有 bucket 中的本地文件更改
-     - 它使用 `git stash` 实现
-     - 如果你还需要这些更改，可以使用 `git stash pop`
-     - 详情参考 [git stash](https://git-scm.com/docs/git-stash)
+> [!Warning]
+>
+> - 如果在安装过程中直接**关闭终端窗口**，脚本将无法执行清理逻辑
+> - 这可能导致本地 bucket 存在修改残留（导致 `scoop update` 报错）
+> - **解决方法**：在对应的 bucket 目录下手动执行 `git reset --hard` 进行恢复

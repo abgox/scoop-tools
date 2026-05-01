@@ -37,13 +37,15 @@
 
 ## Introduction
 
-- Tools provided for [Scoop](https://scoop.sh) that allow you to use a replaced URL instead of the original URL when downloading applications via Scoop.
-- You can use them to replace URLs in a specified format, thereby optimizing the download through a proxy address.
-- Typical case: Replace `https://github.com` and `https://raw.githubusercontent.com` with proxy addresses, refer to [Usage](#usage).
+Enhancement tools for [Scoop](https://scoop.sh) that allow you to **dynamically replace** URLs in manifest files when installing or updating applications.
+
+- **Faster Downloads**: Replace slow sources like Github with mirror proxies, such as [gh-proxy](https://gh-proxy.com).
+- **Non-intrusive**: Temporarily modifies local manifests only during the installation process and automatically reverts them afterward.
+- **Safe & Reliable**: Automatically handles uncommitted changes in local buckets using [git stash](https://git-scm.com/docs/git-stash).
 
 ## Installation
 
-- Add the [abyss](https://abyss.abgox.com) bucket via [Github](https://github.com/abgox/abyss) or [Gitee](https://gitee.com/abgox/abyss).
+- Add the [abyss](https://abyss.abgox.com) bucket ([Github](https://github.com/abgox/abyss) or [Gitee](https://gitee.com/abgox/abyss))
 
   ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
@@ -69,12 +71,12 @@
 
 > [!Tip]
 >
-> Scoop Config
+> Scoop Configurations
 >
 > - `abgox-scoop-install-url-replace-from`: The URL to replace, use regular expressions. Use `^` to match the beginning of the URL.
 > - `abgox-scoop-install-url-replace-to`: The replacement URL that corresponds to `abgox-scoop-install-url-replace-from`.
 
-1. Set URL replacement configurations. Use `|` as a delimiter if there are multiple values.
+1. Set the URL replacement configuration. Use `|` to separate multiple values.
 
    ```shell
    scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"
@@ -84,7 +86,7 @@
    scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
-2. Install [PSCompletions](https://gitee.com/abgox/PSCompletions) to add command completion.
+2. Add command completions using [PSCompletions](https://gitee.com/abgox/PSCompletions)
 
    ```shell
    scoop install abyss/abgox.PSCompletions
@@ -98,72 +100,34 @@
    psc add scoop-install scoop-update
    ```
 
-3. Install apps using the `scoop-install` command.
+3. Use `scoop-install` to install apps
 
    ```shell
    scoop-install abyss/abgox.scoop-i18n
    ```
 
-4. Update apps using the `scoop-update` command.
+4. Use `scoop-update` to update apps
 
    ```shell
    scoop-update abyss/abgox.scoop-i18n
    ```
 
----
-
-- `scoop-install` supports the `-reset` parameter and all parameters of the `scoop install` command.
-- `scoop-update` supports the `-reset` parameter and all parameters of the `scoop update` command.
-
-- Examples:
-  - If you want to undo all local file changes in the buckets to avoid synchronization conflicts during `scoop update`.
-    - It uses `git stash` to undo.
-    - If you still need these changes, you can use `git stash pop`.
-    - For details, refer to [git stash](https://git-scm.com/docs/git-stash).
-
-      ```shell
-      scoop-install -reset
-      ```
-
-  - If you want to install `abyss/abgox.InputTip-zip` without updating Scoop, you can use `-u` or `--no-update-scoop`.
-
-    ```shell
-    scoop-install abyss/abgox.scoop-i18n -u
-    ```
-
-  - If you don't also want to use the download cache, you can use `-k` or `--no-cache`.
-
-    ```shell
-    scoop-install abyss/abgox.scoop-i18n -u --no-cache
-    ```
-
 ## How It Works
 
 > [!Tip]
 >
-> - Take `scoop-install` as an example.
-> - When you run `scoop-install abyss/abgox.scoop-i18n`, it goes through the following process:
+> Taking `scoop-install` as an example, it executes the following logic:
 
-1. `scoop-install` reads the following two configuration values:
+1. **Status Check**: Checks if there are uncommitted changes in the local bucket. If so, automatically runs [git stash](https://git-scm.com/docs/git-stash) to stash them.
+2. **Dynamic Matching**: Reads the following configurations and matches the JSON manifest of the target application via regex:
    - `abgox-scoop-install-url-replace-from`
    - `abgox-scoop-install-url-replace-to`
+3. **Temporary Replacement**: Modifies the `url` in the manifest to the proxy.
+4. **Invoke Native Command**: Executes the actual `scoop install`. Scoop will download from the proxy.
+5. **Automatic Restoration**: After installation completes or is interrupted by `Ctrl+C`, the changes to the manifest are automatically restored.
 
-2. It replaces `url` in the manifest file of `abyss/abgox.scoop-i18n` based on these configurations.
-   - For example, if you use the following configuration:
-     - `abgox-scoop-install-url-replace-from` is set to `^https://github.com|^https://raw.githubusercontent.com`
-     - `abgox-scoop-install-url-replace-to` is set to `https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com`
-
-   - It will split the values by `|` and replace the `url` accordingly:
-     - `^https://github.com` matches `url` starting with `https://github.com` and replaces them with `https://gh-proxy.com/github.com`.
-     - `^https://raw.githubusercontent.com` is replaced with `https://gh-proxy.com/raw.githubusercontent.com`.
-
-3. After replacement, `scoop-install` runs the actual `scoop install` command.
-   - Since `url` of the manifest have been replaced with `https://gh-proxy.com`, Scoop will download the installation packages from `https://gh-proxy.com`.
-
-4. Once the installation is complete (or interrupted with `Ctrl + C`), `scoop-install` automatically undos the changes made to the manifest file.
-   - If you close the terminal during installation, it cannot undo the changes.
-   - This may cause issues with `scoop update` due to local file modifications conflicting with the remote bucket.
-   - In that case, you can run `scoop-install -reset`, which will undo local file changes in all buckets.
-     - It uses `git stash` to undo.
-     - If you still need these changes, you can use `git stash pop`.
-     - For details, refer to [git stash](https://git-scm.com/docs/git-stash)
+> [!Warning]
+>
+> - If you **close the terminal window** directly during installation, the script will be unable to execute the cleanup logic.
+> - This may leave modified remains in your local bucket (causing `scoop update` to fail).
+> - **Solution**: Manually run `git reset --hard` within the corresponding bucket directory to restore it.
