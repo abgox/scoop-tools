@@ -155,7 +155,7 @@ function Replace-Multiple {
 }
 
 try {
-    $config = scoop config
+    $config = scoop.ps1 config
 }
 catch {
     Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
@@ -222,7 +222,7 @@ function installApp {
     $hasChanged = $false
     try {
         try {
-            $info = scoop info --verbose $app
+            $info = scoop.ps1 info --verbose $app
             if ($null -eq $info.Name) {
                 throw 'Name is null'
             }
@@ -290,7 +290,7 @@ function installApp {
             throw "Failed to write manifest: $_"
         }
 
-        scoop install $app @ScoopParams
+        scoop.ps1 install $app @ScoopParams
     }
     finally {
         if ($hasChanged) {

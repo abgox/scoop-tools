@@ -187,7 +187,7 @@ function Replace-Multiple {
 }
 
 try {
-    $config = scoop config
+    $config = scoop.ps1 config
 }
 catch {
     Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
@@ -288,7 +288,7 @@ foreach ($item in $appList) {
 
     try {
         try {
-            $info = scoop info --verbose $app
+            $info = scoop.ps1 info --verbose $app
             if ($null -eq $info.Name) {
                 throw 'Name is null'
             }
@@ -359,10 +359,10 @@ foreach ($item in $appList) {
         }
 
         if ($level -eq 'global') {
-            scoop update $app --global @ScoopParams
+            scoop.ps1 update $app --global @ScoopParams
         }
         else {
-            scoop update $app @ScoopParams
+            scoop.ps1 update $app @ScoopParams
         }
     }
     finally {
