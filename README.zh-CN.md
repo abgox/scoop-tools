@@ -1,9 +1,8 @@
-<h1 align="center">✨ <a href="https://scoop-tools.abgox.com">scoop-tools</a> ✨</h1>
+<h1 align="center">✨<a href="https://scoop-tools.abgox.com">scoop-tools</a>✨</h1>
 
 <p align="center">
-    <a href="readme.md">English</a> |
-    <a href="readme.zh-CN.md">简体中文</a> |
-    <a href="https://github.com/abgox/scoop-tools">Github</a> |
+    <a href="README.md">English</a> |
+    <a href="https://github.com/abgox/scoop-tools">GitHub</a> |
     <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
 </p>
 
@@ -11,14 +10,8 @@
     <a href="https://github.com/abgox/scoop-tools">
         <img src="https://img.shields.io/github/stars/abgox/scoop-tools" alt="github stars" />
     </a>
-    <a href="https://github.com/abgox/scoop-tools/blob/main/license">
+    <a href="https://github.com/abgox/scoop-tools/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/abgox/scoop-tools" alt="license" />
-    </a>
-    <a href="https://img.shields.io/github/languages/code-size/abgox/scoop-tools">
-        <img src="https://img.shields.io/github/languages/code-size/abgox/scoop-tools" alt="code size" />
-    </a>
-    <a href="https://img.shields.io/github/repo-size/abgox/scoop-tools">
-        <img src="https://img.shields.io/github/repo-size/abgox/scoop-tools" alt="repo size" />
     </a>
     <a href="https://github.com/abgox/scoop-tools">
         <img src="https://img.shields.io/github/created-at/abgox/scoop-tools" alt="created" />
@@ -28,12 +21,12 @@
 ---
 
 <p align="center">
-  <strong>喜欢这个项目？请给它 Star ⭐️ 或 <a href="https://abgox.com/donate">赞赏 💰</a></strong>
+  <strong>喜欢这个项目？请给它 Star ⭐️ 或 <a href="https://me.abgox.com/donate">赞赏 💰</a></strong>
 </p>
 
-> [!Tip]
+> [!TIP]
 >
-> 推荐使用 [PSCompletions 中的 scoop/scoop-install/scoop-update 命令补全](https://gitee.com/abgox/PSCompletions)
+> 推荐使用 [PSCompletions 中的 scoop/scoop-install/scoop-update 命令补全](https://pscompletions.abgox.com)
 
 ## 介绍
 
@@ -45,7 +38,7 @@
 
 ## 安装
 
-- 添加 [abyss](https://abyss.abgox.com) bucket ([Github](https://github.com/abgox/abyss) 或 [Gitee](https://gitee.com/abgox/abyss))
+- 添加 [abyss](https://abyss.abgox.com) bucket ([GitHub](https://github.com/abgox/abyss) 或 [Gitee](https://gitee.com/abgox/abyss))
 
   ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
@@ -69,7 +62,7 @@
 
 ## 使用
 
-> [!Tip]
+> [!TIP]
 >
 > Scoop 配置
 >
@@ -86,7 +79,7 @@
    scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"
    ```
 
-2. 使用 [PSCompletions](https://gitee.com/abgox/PSCompletions) 添加命令补全
+2. 使用 [PSCompletions](https://pscompletions.abgox.com) 添加命令补全
 
    ```shell
    scoop install abyss/abgox.PSCompletions
@@ -114,7 +107,7 @@
 
 ## 实现原理
 
-> [!Tip]
+> [!TIP]
 >
 > 以 `scoop-install` 为例，它会执行以下逻辑
 
@@ -127,8 +120,12 @@
 4.  **调用原生**：执行真正的 `scoop install`，此时 Scoop 会从代理地址下载
 5.  **自动恢复**：安装完成或 `Ctrl+C` 中断后，自动撤销清单修改
 
-> [!Warning]
+> [!WARNING]
 >
 > - 如果在安装过程中直接**关闭终端窗口**，脚本将无法执行清理逻辑
 > - 这可能导致本地 bucket 存在修改残留（导致 `scoop update` 报错）
 > - **解决方法**：在对应的 bucket 目录下手动执行 `git reset --hard` 进行恢复
+
+## License
+
+[MIT](./LICENSE) © [abgox](https://me.abgox.com)
