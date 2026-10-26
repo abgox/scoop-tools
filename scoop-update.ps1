@@ -1,96 +1,8 @@
 ﻿#Requires -Version 5.1
 
-param(
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$restArgs
-)
+$restArgs = [string[]]$args
 
-try {
-    Microsoft.PowerShell.Core\Set-StrictMode -Off
-}
-catch {
-    Write-Error $_.Exception.Message
-    exit 1
-}
-
-function Get-LocalizedString {
-    param($Text)
-
-    $CNText = @{
-        'Please install Git first: '                                                                                                                            = '请先安装 Git: '
-        'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' = '一个 PowerShell 脚本，它允许你添加 Scoop 配置，以便在通过 Scoop 下载应用时使用替换后的 URL 而非原始 URL。'
-        'For more information, please visit: '                                                                                                                  = '详情请查看: '
-        'You need admin rights to update global apps.'                                                                                                          = '你需要管理员权限才能更新全局应用。'
-        'No app specified to update.'                                                                                                                           = '没有指定要更新的应用。'
-        'Failed to get scoop configuration. Please check if scoop is properly installed.'                                                                       = '获取 scoop 配置失败，请检查 scoop 是否正常安装'
-        'Undoing local file changes in the following scoop buckets by git stash:'                                                                               = '正在通过 git stash 撤销以下 scoop bucket 中的本地文件更改:'
-        "You haven't set the root directory of scoop yet."                                                                                                      = '你还没有设置 scoop 的根目录。'
-        'Example:'                                                                                                                                              = '参考配置:'
-        "You haven't added the relevant configuration yet."                                                                                                     = '你还没有添加相关配置。'
-        'No app to update.'                                                                                                                                     = '没有可以更新的应用。'
-    }
-
-    if ($PSUICulture -like 'zh*') {
-        return $CNText[$Text]
-    }
-    return $Text
-}
-
-$hasGit = Get-Command git -ErrorAction SilentlyContinue
-
-if (-not $restArgs) {
-    Write-Host 'scoop-update' -ForegroundColor Magenta
-    Write-Host '--------------------'
-    Get-LocalizedString 'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' | Write-Host -ForegroundColor Cyan
-    Get-LocalizedString 'For more information, please visit: ' | Write-Host -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue -NoNewline
-    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://gitee.com/abgox/scoop-tools' -ForegroundColor Blue -NoNewline
-    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://github.com/abgox/scoop-tools' -ForegroundColor Blue
-    return
-}
-
-$appList = @()
-$ScoopParams = @()
-
-foreach ($arg in $restArgs) {
-    if ($arg -like '-*') {
-        if ($arg -in '-a', '--all') {
-            $all = $true
-        }
-        elseif ($arg -in '-g', '--global') {
-            $global = $true
-        }
-        else {
-            $ScoopParams += $arg
-        }
-    }
-    else {
-        if ($arg -eq '*') {
-            $all = $true
-        }
-        else {
-            $appList += @{
-                Name  = $arg.Trim()
-                level = $null
-            }
-        }
-    }
-}
-
-if ($global) {
-    function Test-Admin {
-        $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-        $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -and ($identity.Groups -contains 'S-1-5-32-544')
-    }
-
-    if (-not (Test-Admin)) {
-        Get-LocalizedString 'You need admin rights to update global apps.' | Write-Host -ForegroundColor Red
-        exit 1
-    }
-}
+Microsoft.PowerShell.Core\Set-StrictMode -Off
 
 function ConvertFrom-JsonAsHashtable {
     [CmdletBinding()]
@@ -168,6 +80,26 @@ function ConvertFrom-JsonAsHashtable {
     }
 }
 
+function Get-LocalizedString {
+    param($Text)
+
+    $CNText = @{
+        'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' = '一个 PowerShell 脚本，它允许你添加 Scoop 配置，以便在通过 Scoop 下载应用时使用替换后的 URL 而非原始 URL。'
+        'For more information, please visit: '                                                                                                                  = '详情请查看: '
+        'You need admin rights to update global apps.'                                                                                                          = '你需要管理员权限才能更新全局应用。'
+        'No app specified to update.'                                                                                                                           = '没有指定要更新的应用。'
+        'Failed to get scoop configuration. Please check if scoop is properly installed.'                                                                       = '获取 scoop 配置失败，请检查 scoop 是否正常安装'
+        'Example:'                                                                                                                                              = '参考配置:'
+        "You haven't added the relevant configuration yet."                                                                                                     = '你还没有添加相关配置。'
+        'No app to update.'                                                                                                                                     = '没有可以更新的应用。'
+    }
+
+    if ($PSUICulture -like 'zh*') {
+        return $CNText[$Text]
+    }
+    return $Text
+}
+
 function Replace-Multiple {
     param (
         [string]$InputString,
@@ -176,37 +108,451 @@ function Replace-Multiple {
     )
 
     for ($i = 0; $i -lt $Patterns.Count; $i++) {
-        if ($null -eq $Replacements[$i]) {
-            $Replacements[$i] = $Replacements[0]
-        }
-
-        $InputString = $InputString -replace $Patterns[$i], $Replacements[$i]
+        $replacement = $Replacements[$i], $Replacements[0] | Select-Object -First 1
+        $InputString = $InputString -replace $Patterns[$i], $replacement
     }
 
     return $InputString
 }
 
-try {
-    $config = scoop.ps1 config
+function Get-ScoopInstallRoot {
+    $commands = @()
+    $commands += Get-Command scoop.ps1 -ErrorAction SilentlyContinue
+    $commands += Get-Command scoop -CommandType ExternalScript, Application -ErrorAction SilentlyContinue
+
+    foreach ($command in $commands) {
+        if (-not $command -or -not $command.Source) {
+            continue
+        }
+        $source = $command.Source
+        if ($source -match '^(?<root>.+?)\\apps\\scoop\\current\\bin\\scoop\.ps1$') {
+            return $matches.root
+        }
+        if ($source -match '^(?<root>.+?)\\shims\\scoop(\.ps1|\.cmd)?$') {
+            return $matches.root
+        }
+    }
 }
-catch {
-    Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
+
+function Get-ScoopConfig {
+    try {
+        $config = scoop.ps1 config
+        if ($LASTEXITCODE -ne 0) {
+            throw "scoop config exited with code $LASTEXITCODE"
+        }
+        return $config
+    }
+    catch {
+        Get-LocalizedString 'Failed to get scoop configuration. Please check if scoop is properly installed.' | Write-Host -ForegroundColor Red
+        exit 1
+    }
+}
+
+function Get-ScoopRoot {
+    param($Config)
+
+    $root = $env:SCOOP
+    if (-not $root) {
+        $root = $Config.root_path
+    }
+    if (-not $root) {
+        $root = Get-ScoopInstallRoot
+    }
+    if (-not $root) {
+        $root = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('UserProfile'), 'scoop')
+    }
+    return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($root)
+}
+
+function Get-GlobalRoot {
+    param($Config)
+
+    $root = $env:SCOOP_GLOBAL
+    if (-not $root) {
+        $root = $Config.global_path
+    }
+    if (-not $root) {
+        $root = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('CommonApplicationData'), 'scoop')
+    }
+    return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($root)
+}
+
+function Test-ScoopOutdated {
+    param($Config)
+
+    if (-not $Config.last_update) {
+        return $true
+    }
+
+    try {
+        $lastUpdate = if ($Config.last_update -is [datetime]) {
+            [DateTimeOffset]$Config.last_update
+        }
+        else {
+            [DateTimeOffset]::Parse($Config.last_update, [System.Globalization.CultureInfo]::InvariantCulture)
+        }
+        return (([DateTimeOffset]::Now - $lastUpdate).TotalHours -ge 3)
+    }
+    catch {
+        return $true
+    }
+}
+
+function Update-ScoopIfNeeded {
+    param(
+        $Config,
+        [bool]$Skip
+    )
+
+    if ($Skip -or -not (Test-ScoopOutdated $Config)) {
+        return
+    }
+
+    try {
+        Invoke-ScoopCommand -Command 'update' -Arguments @() -Context 'Scoop'
+    }
+    catch {
+        Write-Host 'Failed to update Scoop. Aborting.' -ForegroundColor Red
+        exit 1
+    }
+}
+
+function Get-AppUpdateStatus {
+    $items = @(scoop.ps1 status --local 6>$null)
+    if ($LASTEXITCODE -ne 0) {
+        return $null
+    }
+
+    $outdated = @{}
+    $missingDependencies = @{}
+
+    foreach ($item in $items) {
+        if (-not $item.Name -or $item.Info -match 'Held package') {
+            continue
+        }
+
+        $level = if ($item.Info -match 'Global install') { 'global' } else { 'user' }
+        $key = "$($item.Name)|$level"
+
+        if ($item.'Latest Version') {
+            $outdated[$key] = $true
+        }
+        if ($item.'Missing Dependencies') {
+            $missingDependencies[$key] = $true
+        }
+    }
+
+    return @{
+        Outdated            = $outdated
+        MissingDependencies = $missingDependencies
+    }
+}
+
+function Test-AppInstalledAtLevel {
+    param(
+        $Info,
+        [string]$Level
+    )
+
+    $entries = @($Info.Installed -split "`n" | Where-Object { $_ })
+    if ($Level -eq 'global') {
+        return [bool]($entries | Where-Object { $_ -match '\*global\*' })
+    }
+    return [bool]($entries | Where-Object { $_ -notmatch '\*global\*' })
+}
+
+function Get-AppInfo {
+    param([string]$App)
+
+    $info = scoop.ps1 info $App
+    if ($LASTEXITCODE -ne 0 -or $null -in $info.Name, $info.Source) {
+        return
+    }
+    return $info
+}
+
+function Get-AppManifestPath {
+    param(
+        $Info,
+        [string]$ScoopRoot
+    )
+
+    if (-not $Info -or -not $Info.Name -or -not $Info.Source) {
+        return
+    }
+    if ($Info.Source -match '^(ht|f)tps?://|\\\\') {
+        return
+    }
+
+    $name = $Info.Name -replace '\s+\(DEPRECATED\)$', ''
+    $bucketRoot = Join-Path (Join-Path $ScoopRoot 'buckets') $Info.Source
+    if (-not (Test-Path -LiteralPath $bucketRoot)) {
+        return
+    }
+
+    $searchPaths = @()
+    if (Test-Path -LiteralPath (Join-Path $bucketRoot 'bucket')) {
+        $searchPaths += Join-Path $bucketRoot 'bucket'
+    }
+    $searchPaths += $bucketRoot
+
+    foreach ($searchPath in $searchPaths) {
+        $manifest = Get-ChildItem -LiteralPath $searchPath -Filter "$name.json" -Recurse -File -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+        if ($manifest) {
+            return $manifest.FullName
+        }
+    }
+}
+
+function Get-AppDependency {
+    param($Info)
+
+    if (-not $Info.Dependencies) {
+        return @()
+    }
+    return $Info.Dependencies -split '\s+\|\s+'
+}
+
+function Install-AppDependency {
+    param(
+        [string]$App,
+        [string]$Level
+    )
+
+    if ($visitedDependencies.ContainsKey($App)) {
+        return
+    }
+    $visitedDependencies[$App] = $true
+
+    $info = Get-AppInfo -App $App
+    if (-not $info) {
+        throw "Error fetching scoop info for ${App}"
+    }
+
+    if (-not $independent) {
+        foreach ($dependency in Get-AppDependency $info) {
+            Install-AppDependency -App $dependency -Level $Level
+        }
+    }
+
+    if (Test-AppInstalledAtLevel -Info $info -Level $Level) {
+        return
+    }
+
+    $manifestPath = Get-AppManifestPath -Info $info -ScoopRoot $scoopRoot
+    if (-not $manifestPath) {
+        return
+    }
+
+    $installParams = @()
+    if ($Level -eq 'global') {
+        $installParams += '--global'
+    }
+    $installParams += '--no-update-scoop'
+    foreach ($param in $ScoopParams) {
+        if ($param -in '-k', '--no-cache', '-s', '--skip-hash-check') {
+            $installParams += $param
+        }
+    }
+
+    $arguments = @($App) + $installParams
+    Invoke-WithReplacedManifest -App $App -ManifestPath $manifestPath -OriginPatterns $originPatterns -ReplacePatterns $replacePatterns -Action {
+        Invoke-ScoopCommand -Command 'install' -Arguments $arguments -Context $App
+    }
+}
+
+function Invoke-ScoopCommand {
+    param(
+        [string]$Command,
+        [string[]]$Arguments,
+        [string]$Context
+    )
+
+    & scoop.ps1 $Command @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "scoop $Command failed for $Context (exit code $LASTEXITCODE)"
+    }
+}
+
+function Invoke-WithReplacedManifest {
+    param(
+        [string]$App,
+        [string]$ManifestPath,
+        [string[]]$OriginPatterns,
+        [string[]]$ReplacePatterns,
+        [scriptblock]$Action
+    )
+
+    $originalBytes = [System.IO.File]::ReadAllBytes($ManifestPath)
+    $manifest = [System.IO.File]::ReadAllText($ManifestPath) | ConvertFrom-JsonAsHashtable
+
+    $urlOperations = @(
+        @{
+            Get = { $manifest.url }
+            Set = { param($value) $manifest.url = $value }
+        },
+        @{
+            Get = { $manifest.architecture.'64bit'.url }
+            Set = { param($value) $manifest.architecture.'64bit'.url = $value }
+        },
+        @{
+            Get = { $manifest.architecture.'32bit'.url }
+            Set = { param($value) $manifest.architecture.'32bit'.url = $value }
+        },
+        @{
+            Get = { $manifest.architecture.arm64.url }
+            Set = { param($value) $manifest.architecture.arm64.url = $value }
+        }
+    )
+
+    $urlChanged = $false
+    foreach ($operation in $urlOperations) {
+        $urlValue = & $operation.Get
+        if ($urlValue) {
+            if ($urlValue -is [array]) {
+                $newValue = @($urlValue | ForEach-Object { Replace-Multiple $_ $OriginPatterns $ReplacePatterns })
+                if (($newValue -join "`n") -ne ($urlValue -join "`n")) {
+                    $urlChanged = $true
+                }
+            }
+            else {
+                $newValue = Replace-Multiple $urlValue $OriginPatterns $ReplacePatterns
+                if ($newValue -ne $urlValue) {
+                    $urlChanged = $true
+                }
+            }
+            & $operation.Set $newValue
+        }
+    }
+
+    $hasChanged = $false
+    try {
+        if ($urlChanged) {
+            $newContent = $manifest | ConvertTo-Json -Depth 100
+            try {
+                Set-Content -LiteralPath $ManifestPath -Value $newContent -Encoding utf8 -Force -ErrorAction Stop
+                $hasChanged = $true
+            }
+            catch {
+                throw "Failed to write manifest: $_"
+            }
+        }
+
+        & $Action
+    }
+    finally {
+        if ($hasChanged) {
+            [System.IO.File]::WriteAllBytes($ManifestPath, $originalBytes)
+        }
+    }
+}
+
+function Update-App {
+    param(
+        [string]$App,
+        [string]$Level,
+        [switch]$SkipMissing
+    )
+
+    $info = Get-AppInfo -App $App
+    if (-not $info) {
+        if ($SkipMissing) {
+            return
+        }
+        throw "Error fetching scoop info for ${App}"
+    }
+
+    $manifestPath = Get-AppManifestPath -Info $info -ScoopRoot $scoopRoot
+    if (-not $manifestPath) {
+        if ($SkipMissing) {
+            return
+        }
+        throw "Manifest not found for ${App}"
+    }
+
+    if (-not $independent) {
+        foreach ($dependency in Get-AppDependency $info) {
+            Install-AppDependency -App $dependency -Level $Level
+        }
+    }
+
+    $arguments = @($App)
+    if ($Level -eq 'global') {
+        $arguments += '--global'
+    }
+    $arguments += $ScoopParams
+
+    Invoke-WithReplacedManifest -App $App -ManifestPath $manifestPath -OriginPatterns $originPatterns -ReplacePatterns $replacePatterns -Action {
+        Invoke-ScoopCommand -Command 'update' -Arguments $arguments -Context $App
+    }
+}
+
+function Test-Admin {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $admin = [Security.Principal.WindowsBuiltInRole]::Administrator
+    return [Security.Principal.WindowsPrincipal]::new($identity).IsInRole($admin)
+}
+
+# Main
+
+if (-not $restArgs) {
+    Write-Host 'scoop-update' -ForegroundColor Magenta
+    Write-Host '--------------------'
+    Get-LocalizedString 'A PowerShell script that allows you to add Scoop configurations to use a replaced url instead of the original url when downloading the app via Scoop.' | Write-Host -ForegroundColor Cyan
+    Get-LocalizedString 'For more information, please visit: ' | Write-Host -ForegroundColor Cyan -NoNewline
+    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue
+    return
+}
+
+$appList = @()
+$ScoopParams = @()
+$all = $false
+$global = $false
+$independent = $false
+
+foreach ($arg in $restArgs) {
+    if ($arg -like '-*') {
+        if ($arg -in '-a', '--all') {
+            $all = $true
+        }
+        elseif ($arg -in '-g', '--global') {
+            $global = $true
+        }
+        else {
+            if ($arg -eq '--independent' -or $arg -match '^-[^-]*i') {
+                $independent = $true
+            }
+            $ScoopParams += $arg
+        }
+    }
+    else {
+        if ($arg -eq '*') {
+            $all = $true
+        }
+        else {
+            $appList += @{
+                Name  = $arg.Trim()
+                Level = $null
+            }
+        }
+    }
+}
+
+if ($global -and -not (Test-Admin)) {
+    Get-LocalizedString 'You need admin rights to update global apps.' | Write-Host -ForegroundColor Red
     exit 1
 }
-$origin = $config.'abgox-scoop-install-url-replace-from'
-$replace = $config.'abgox-scoop-install-url-replace-to'
 
 if (-not $all -and $appList.Length -eq 0) {
     Get-LocalizedString 'No app specified to update.' | Write-Host -ForegroundColor Red
     return
 }
 
-if ($null -eq $config.root_path) {
-    Get-LocalizedString "You haven't set the root directory of scoop yet." | Write-Host -ForegroundColor Yellow
-    Get-LocalizedString 'Example:' | Write-Host -ForegroundColor Cyan
-    Write-Host 'scoop config root_path "D:\scoop"' -ForegroundColor Cyan
-    exit 1
-}
+$config = Get-ScoopConfig
+
+$origin = $config.'abgox-scoop-install-url-replace-from'
+$replace = $config.'abgox-scoop-install-url-replace-to'
 
 if ($origin -and $replace) {
     $originPatterns = $origin -split '\|+'
@@ -215,41 +561,42 @@ if ($origin -and $replace) {
 else {
     Get-LocalizedString "You haven't added the relevant configuration yet." | Write-Host -ForegroundColor Yellow
     Get-LocalizedString 'For more information, please visit: ' | Write-Host -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue -NoNewline
-    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://gitee.com/abgox/scoop-tools' -ForegroundColor Blue -NoNewline
-    Write-Host ' | ' -ForegroundColor Cyan -NoNewline
-    Write-Host 'https://github.com/abgox/scoop-tools' -ForegroundColor Blue
+    Write-Host 'https://scoop-tools.abgox.com' -ForegroundColor Blue
 
     Get-LocalizedString 'Example:' | Write-Host -ForegroundColor Cyan
     Write-Host 'scoop config abgox-scoop-install-url-replace-from "^https://github.com|^https://raw.githubusercontent.com"' -ForegroundColor Cyan
-    Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"' -ForegroundColor Cyan
+    Write-Host 'scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.org/github.com|https://gh-proxy.org/raw.githubusercontent.com"' -ForegroundColor Cyan
 
     exit 1
 }
+
+Update-ScoopIfNeeded -Config $config -Skip:$false
+
+$scoopRoot = Get-ScoopRoot -Config $config
+$globalRoot = Get-GlobalRoot -Config $config
 
 if ($all) {
     $appList = @()
     $dirs = @(
         @{
-            Path  = "$($config.root_path)\apps"
-            level = 'user'
+            Path  = "$scoopRoot\apps"
+            Level = 'user'
         }
     )
-    if ($global -and $config.global_path) {
+    if ($global) {
         $dirs += @{
-            Path  = "$($config.global_path)\apps"
-            level = 'global'
+            Path  = "$globalRoot\apps"
+            Level = 'global'
         }
     }
 
-    foreach ($item in $dirs) {
-        if (Test-Path $item.Path) {
-            $apps = Get-ChildItem $item.Path -Directory | Where-Object { $_.Name -ne 'scoop' } | Select-Object -ExpandProperty Name
+    foreach ($dir in $dirs) {
+        if (Test-Path $dir.Path) {
+            $apps = Get-ChildItem $dir.Path -Directory | Where-Object { $_.Name -ne 'scoop' } | Select-Object -ExpandProperty Name
             foreach ($app in $apps) {
                 $appList += @{
                     Name  = $app
-                    level = $item.level
+                    Level = $dir.Level
                 }
             }
         }
@@ -261,121 +608,54 @@ if ($appList.Length -eq 0) {
     return
 }
 
-if ($hasGit) {
-    Get-ChildItem "$($config.root_path)\buckets" -Directory | ForEach-Object {
-        Push-Location $_.FullName
-        $change = git status --porcelain
-        if (-not $change) {
-            Pop-Location
-            return
+$updateStatus = if ($all) { Get-AppUpdateStatus } else { $null }
+$visitedDependencies = @{}
+$failedApps = @()
+foreach ($item in $appList) {
+    $app = $item.Name
+    $level = $item.Level
+
+    if ($null -eq $level) {
+        $level = if ($global) { 'global' } else { 'user' }
+    }
+
+    if ($updateStatus -and $null -ne $item.Level) {
+        $key = "$app|$level"
+        $isOutdated = $updateStatus.Outdated.ContainsKey($key)
+        $hasMissingDependencies = $updateStatus.MissingDependencies.ContainsKey($key)
+
+        if (-not $isOutdated -and -not $hasMissingDependencies) {
+            continue
         }
-        Write-Host $_.FullName -ForegroundColor Cyan -NoNewline
-        Write-Host ': ' -NoNewline
-        try {
-            git stash -m "stash local changes by abgox.scoop-update ($(Get-Date))"
+
+        if (-not $isOutdated -and $hasMissingDependencies) {
+            if (-not $independent) {
+                try {
+                    $info = Get-AppInfo -App $app
+                    if ($info) {
+                        foreach ($dependency in Get-AppDependency $info) {
+                            Install-AppDependency -App $dependency -Level $level
+                        }
+                    }
+                }
+                catch {
+                    Write-Host $_.Exception.Message -ForegroundColor Red
+                    $failedApps += $app
+                }
+            }
+            continue
         }
-        finally {
-            Pop-Location
-        }
+    }
+
+    try {
+        Update-App -App $app -Level $level -SkipMissing:($null -ne $item.Level)
+    }
+    catch {
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $failedApps += $app
     }
 }
 
-foreach ($item in $appList) {
-    $hasChanged = $false
-
-    $app = $item.Name
-    $level = $item.level
-
-    try {
-        try {
-            $info = scoop.ps1 info --verbose $app
-            if ($null -eq $info.Name) {
-                throw 'Name is null'
-            }
-            if ($null -eq $info.Source) {
-                throw 'Source is null'
-            }
-            if ($null -eq $info.Manifest) {
-                throw 'Manifest is null'
-            }
-            $bucketPath = "$($config.root_path)\buckets\$($info.Source)"
-            $appname = $info.Name
-            $manifestPath = $info.Manifest
-            if ($null -eq $level) {
-                if ($all) {
-                    $level = if ($info.Installed -like "*`*global`*") { 'global' }else { 'user' }
-                }
-                else {
-                    $level = if ($global) { 'global' }else { 'user' }
-                }
-            }
-        }
-        catch {
-            throw "Error fetching scoop info for ${app}: $_"
-        }
-
-        $content = Get-Content $manifestPath -Raw -Encoding utf8
-        $manifest = $content | ConvertFrom-JsonAsHashtable
-
-        $urlOperations = @(
-            @{
-                Get = { $manifest.url }
-                Set = { param($value) $manifest.url = $value }
-            },
-            @{
-                Get = { $manifest.architecture.'64bit'.url }
-                Set = { param($value) $manifest.architecture.'64bit'.url = $value }
-            },
-            @{
-                Get = { $manifest.architecture.'32bit'.url }
-                Set = { param($value) $manifest.architecture.'32bit'.url = $value }
-            },
-            @{
-                Get = { $manifest.architecture.arm64.url }
-                Set = { param($value) $manifest.architecture.arm64.url = $value }
-            }
-        )
-
-        foreach ($operation in $urlOperations) {
-            $urlValue = & $operation.Get
-            if ($urlValue) {
-                if ($urlValue -is [array]) {
-                    $newValue = @($urlValue | ForEach-Object { Replace-Multiple $_ $originPatterns $replacePatterns })
-                }
-                else {
-                    $newValue = Replace-Multiple $urlValue $originPatterns $replacePatterns
-                }
-                & $operation.Set $newValue
-            }
-        }
-
-        $newContent = $manifest | ConvertTo-Json -Depth 100
-        try {
-            Set-Content $manifestPath $newContent -Encoding utf8 -Force -ErrorAction Stop
-            $hasChanged = $true
-        }
-        catch {
-            throw "Failed to write manifest: $_"
-        }
-
-        if ($level -eq 'global') {
-            scoop.ps1 update $app --global @ScoopParams
-        }
-        else {
-            scoop.ps1 update $app @ScoopParams
-        }
-    }
-    finally {
-        if ($hasChanged) {
-            if ($hasGit) {
-                Push-Location $bucketPath
-                git checkout -- $manifestPath
-                Pop-Location
-            }
-            else {
-                $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-                [System.IO.File]::WriteAllText($manifestPath, $content, $utf8NoBom)
-            }
-        }
-    }
+if ($failedApps.Count -gt 0) {
+    exit 1
 }
