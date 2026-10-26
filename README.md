@@ -1,8 +1,10 @@
-<h1 align="center">✨<a href="https://scoop-tools.abgox.com">scoop-tools</a>✨</h1>
+<h1 align="center"><a href="https://scoop-tools.abgox.com">scoop-tools</a></h1>
 
 <p align="center">
+    <span>English</span> |
     <a href="README.zh-CN.md">简体中文</a> |
     <a href="https://github.com/abgox/scoop-tools">GitHub</a> |
+    <a href="https://atomgit.com/abgox/scoop-tools">AtomGit</a> |
     <a href="https://gitee.com/abgox/scoop-tools">Gitee</a>
 </p>
 
@@ -33,15 +35,18 @@
 Enhancement tools for [Scoop](https://scoop.sh) that allow you to **dynamically replace** URLs in manifest files when installing or updating applications.
 
 - **Faster Downloads**: Replace slow sources like GitHub with mirror proxies, such as [gh-proxy](https://gh-proxy.com).
-- **Non-intrusive**: Temporarily modifies local manifests only during the installation process and automatically reverts them afterward.
-- **Safe & Reliable**: Automatically handles uncommitted changes in local buckets using [git stash](https://git-scm.com/docs/git-stash).
+- **Safe & Reliable**: Temporarily modifies local manifests only during the installation process and automatically reverts them afterward.
 
 ## Installation
 
-- Add the [abyss](https://abyss.abgox.com) bucket ([GitHub](https://github.com/abgox/abyss) or [Gitee](https://gitee.com/abgox/abyss))
+- Add the [abyss](https://abyss.abgox.com) bucket
 
   ```shell
   scoop bucket add abyss https://gitee.com/abgox/abyss
+  ```
+
+  ```shell
+  scoop bucket add abyss https://atomgit.com/abgox/abyss
   ```
 
   ```shell
@@ -76,18 +81,10 @@ Enhancement tools for [Scoop](https://scoop.sh) that allow you to **dynamically 
    ```
 
    ```shell
-   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.com/github.com|https://gh-proxy.com/raw.githubusercontent.com"
+   scoop config abgox-scoop-install-url-replace-to "https://gh-proxy.org/github.com|https://gh-proxy.org/raw.githubusercontent.com"
    ```
 
 2. Add command completions using [PSCompletions](https://pscompletions.abgox.com)
-
-   ```shell
-   scoop install abyss/abgox.PSCompletions
-   ```
-
-   ```shell
-   Import-Module PSCompletions
-   ```
 
    ```shell
    psc add scoop-install scoop-update
@@ -105,25 +102,36 @@ Enhancement tools for [Scoop](https://scoop.sh) that allow you to **dynamically 
    scoop-update abyss/abgox.scoop-i18n
    ```
 
+> [!NOTE]
+>
+> Scoop options are passed through. For example:
+>
+> - `scoop-install -g -a 64bit app`
+> - `scoop-install -i app` (do not install dependencies)
+> - `scoop-update --all`
+>
+> Dependencies are downloaded through the proxy as well.
+
 ## How It Works
 
 > [!TIP]
 >
 > Taking `scoop-install` as an example, it executes the following logic:
 
-1. **Status Check**: Checks if there are uncommitted changes in the local bucket. If so, automatically runs [git stash](https://git-scm.com/docs/git-stash) to stash them.
-2. **Dynamic Matching**: Reads the following configurations and matches the JSON manifest of the target application via regex:
+1. **Resolve Manifest**: Finds the target app's manifest in the local bucket.
+2. **Scoop Update Check**: If Scoop is due for an update, runs `scoop update` before touching any manifest.
+3. **Dynamic Matching**: Reads the following configurations and matches the JSON manifest of the target application via regex:
    - `abgox-scoop-install-url-replace-from`
    - `abgox-scoop-install-url-replace-to`
-3. **Temporary Replacement**: Modifies the `url` in the manifest to the proxy.
-4. **Invoke Native Command**: Executes the actual `scoop install`. Scoop will download from the proxy.
-5. **Automatic Restoration**: After installation completes or is interrupted by `Ctrl+C`, the changes to the manifest are automatically restored.
+4. **Temporary Replacement**: Modifies the `url` in the manifest to the proxy.
+5. **Invoke Native Command**: Executes the actual `scoop install`. Scoop will download from the proxy.
+6. **Automatic Restoration**: Restores the original manifest bytes after installation completes or is interrupted by `Ctrl + c`.
 
 > [!WARNING]
 >
 > - If you **close the terminal window** directly during installation, the script will be unable to execute the cleanup logic.
-> - This may leave modified remains in your local bucket (causing `scoop update` to fail).
-> - **Solution**: Manually run `git reset --hard` within the corresponding bucket directory to restore it.
+> - This may leave the manifest temporarily modified.
+> - **Solution**: Run `git -C <bucket> restore <manifest>` or restore it from your bucket backup.
 
 ## License
 
